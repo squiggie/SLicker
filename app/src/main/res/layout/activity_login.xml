@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="slicker.com.slicker.View.LoginActivity">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/login_title"
+        android:gravity="center"
+        android:textStyle="bold|italic"
+        android:textColor="@color/colorPrimaryDark"
+        android:textSize="@dimen/abc_text_size_display_3_material"
+        android:layout_above="@+id/login"
+        android:id="@+id/slicker"
+        android:padding="24dp"/>
+    <Button
+        android:id="@+id/login"
+        android:layout_width="@dimen/abc_panel_menu_list_width"
+        android:layout_height="wrap_content"
+        android:drawableRight="@mipmap/ic_flickr"
+        android:text="Login with Flickr"
+        android:layout_centerInParent="true"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Reset"
+        android:id="@+id/reset"
+        android:layout_below="@+id/login"
+        android:layout_centerHorizontal="true"/>
+
+</RelativeLayout>
