@@ -1,9 +1,9 @@
 package slicker.com.slicker.Controller;
 
-import com.github.scribejava.core.model.Token;
-import com.googlecode.flickrjandroid.oauth.OAuth;
 
-import java.net.URL;
+import com.github.scribejava.core.model.Token;
+
+import slicker.com.slicker.Model.OAuth;
 
 /**
  * Created by squiggie on 2/23/16.
@@ -11,11 +11,11 @@ import java.net.URL;
 public class MyInterfaces {
 
     public interface OnAccessTokenTaskCompleted{
-        void onAccessTokenTaskCompleted(OAuth result);
+        void onAccessTokenTaskCompleted(Token accessToken);
     }
 
-    public interface OnSaveOAuthTokenSecret{
-        void onSaveOAuthTokenSecret(String tokenSecret);
+    public interface OnSaveOAuthRequestToken {
+        void onSaveOauthRequestToken(Token requestToken);
     }
 
     public interface OnGetUserInfo{

@@ -9,11 +9,10 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.googlecode.flickrjandroid.oauth.OAuth;
-import com.googlecode.flickrjandroid.oauth.OAuthToken;
-import com.googlecode.flickrjandroid.people.User;
+import com.github.scribejava.core.model.Token;
 
-import java.util.Locale;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -21,9 +20,13 @@ import butterknife.OnClick;
 import slicker.com.slicker.Controller.AccessTokenTask;
 import slicker.com.slicker.Controller.MyInterfaces;
 import slicker.com.slicker.Controller.RequestTokenTask;
+import slicker.com.slicker.Controller.UserInfoTask;
+import slicker.com.slicker.Model.OAuth;
+import slicker.com.slicker.Model.OAuthToken;
+import slicker.com.slicker.Model.User;
 import slicker.com.slicker.R;
 
-public class LoginActivity extends AppCompatActivity implements MyInterfaces.OnAccessTokenTaskCompleted, MyInterfaces.OnSaveOAuthTokenSecret {
+public class LoginActivity extends AppCompatActivity implements MyInterfaces.OnAccessTokenTaskCompleted, MyInterfaces.OnSaveOAuthRequestToken, MyInterfaces.OnGetUserInfo{
 
     private static final String CALLBACK_SCHEME = "slicker";
     @Bind(R.id.login) Button btnLogin;
@@ -32,11 +35,13 @@ public class LoginActivity extends AppCompatActivity implements MyInterfaces.OnA
 
     private SharedPreferences sp;
 
-    public static final String KEY_OAUTH_TOKEN = "oauthToken";
-    public static final String KEY_TOKEN_SECRET = "tokenSecret";
-    public static final String KEY_USER_NAME = "slicker-userName";
-    public static final String KEY_USER_ID = "slicker-userId";
-    public static final String SP_KEY = "slicker_sp";
+    private static final String KEY_OAUTH_TOKEN = "oauthToken";
+    private static final String KEY_TOKEN_SECRET = "tokenSecret";
+    private static final String KEY_USER_NAME = "slicker-userName";
+    private static final String KEY_USER_ID = "slicker-userId";
+    private static final String SP_KEY = "slicker_sp";
+    private static final String API_KEY = "1fc23d5d959ae5c917c963ceed83e493";
+    private static final String API_SEC = "038c3d980b655413";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +61,7 @@ public class LoginActivity extends AppCompatActivity implements MyInterfaces.OnA
     @OnClick(R.id.login)
     public void login(){
         RequestTokenTask task = new RequestTokenTask(this,this);
-        task.execute();
+        task.execute(API_KEY, API_SEC);
     }
 
     @OnClick(R.id.reset)
@@ -65,7 +70,7 @@ public class LoginActivity extends AppCompatActivity implements MyInterfaces.OnA
         editor.putString(KEY_TOKEN_SECRET,null);
         editor.putString(KEY_OAUTH_TOKEN,null);
         editor.putString(KEY_USER_ID, null);
-        editor.putString(KEY_USER_NAME,null);
+        editor.putString(KEY_USER_NAME, null);
         editor.apply();
     }
 
@@ -101,29 +106,15 @@ public class LoginActivity extends AppCompatActivity implements MyInterfaces.OnA
 
 
     @Override
-    public void onAccessTokenTaskCompleted(OAuth result) {
-        if (result == null) {
+    public void onAccessTokenTaskCompleted(Token accessToken) {
+        if (accessToken == null) {
             Toast.makeText(this, "Authorization failed", Toast.LENGTH_LONG).show();
         } else {
-            User user = result.getUser();
-            OAuthToken token = result.getToken();
-            if (user == null || user.getId() == null || token == null || token.getOauthToken() == null || token.getOauthTokenSecret() == null) {
-                Toast.makeText(this, "Authorization failed", Toast.LENGTH_LONG).show();
-                return;
-            }
-            String message = String.format(Locale.US, "Authorization Succeed: user=%s, userId=%s, oauthToken=%s, tokenSecret=%s", user.getUsername(), user.getId(), token.getOauthToken(), token.getOauthTokenSecret());
-            Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-            saveOAuthToken(user.getUsername(), user.getId(), token.getOauthToken(), token.getOauthTokenSecret());
-            startSlicker();
+            saveOAuthToken(null,null,accessToken.getToken(),accessToken.getSecret());
+            UserInfoTask userInfo = new UserInfoTask(this);
+            userInfo.execute(API_KEY,API_SEC,accessToken.getToken(),accessToken.getSecret());
         }
 
-    }
-
-    @Override
-    public void onSaveOAuthTokenSecret(String tokenSecret) {
-        SharedPreferences.Editor editor = sp.edit();
-        editor.putString(KEY_TOKEN_SECRET, tokenSecret);
-        editor.apply();
     }
 
     @Override
@@ -149,7 +140,7 @@ public class LoginActivity extends AppCompatActivity implements MyInterfaces.OnA
                 OAuth oauth = getOAuthToken();
                 if (oauth != null && oauth.getToken() != null && oauth.getToken().getOauthTokenSecret() != null) {
                     AccessTokenTask task = new AccessTokenTask(this,this);
-                    task.execute(oauthToken, oauth.getToken().getOauthTokenSecret(), oauthVerifier);
+                    task.execute(API_KEY,API_SEC,oauthToken,oauth.getToken().getOauthTokenSecret(),oauthVerifier);
                 }
             }
         }
@@ -165,4 +156,31 @@ public class LoginActivity extends AppCompatActivity implements MyInterfaces.OnA
     }
 
 
+    @Override
+    public void onSaveOauthRequestToken(Token requestToken) {
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putString(KEY_TOKEN_SECRET, requestToken.getSecret());
+        editor.putString(KEY_OAUTH_TOKEN,requestToken.getToken());
+        editor.apply();
+    }
+
+    @Override
+    public void onGetUserInfo(String response) {
+        if (response.contains("username")){
+            String json = response.substring(response.indexOf("(") + 1, response.lastIndexOf(")"));
+            try {
+                JSONObject parsedJson = new JSONObject(json);
+                JSONObject user = parsedJson.getJSONObject("user");
+                String id = user.getString("id");
+                JSONObject usernameObject = user.getJSONObject("username");
+                String username = usernameObject.getString("_content");
+                saveOAuthToken(username,id,null,null);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            startSlicker();
+        } else {
+            Toast.makeText(this, "Authorization failed", Toast.LENGTH_LONG).show();
+        }
+    }
 }

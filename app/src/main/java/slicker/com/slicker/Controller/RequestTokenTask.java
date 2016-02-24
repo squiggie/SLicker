@@ -9,25 +9,22 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.googlecode.flickrjandroid.Flickr;
-import com.googlecode.flickrjandroid.auth.Permission;
-import com.googlecode.flickrjandroid.oauth.OAuthToken;
-
-import java.net.URL;
-
-import slicker.com.slicker.Helper.FlickrHelper;
+import com.github.scribejava.apis.FlickrApi;
+import com.github.scribejava.core.builder.ServiceBuilder;
+import com.github.scribejava.core.model.Token;
+import com.github.scribejava.core.oauth.OAuth10aService;
 
 /**
  * Created by squiggie on 2/23/16.
  */
-public class RequestTokenTask extends AsyncTask<Void, Integer, String> {
+public class RequestTokenTask extends AsyncTask<String, Integer, String> {
 
-    private static final String OAUTH_CALLBACK_URI = "slicker://oauth";
+    private static final String OAUTH_CALLBACK_URI = "slicker://";
     private Context mContext;
     private ProgressDialog mProgressDialog;
-    private MyInterfaces.OnSaveOAuthTokenSecret mListener;
+    private MyInterfaces.OnSaveOAuthRequestToken mListener;
 
-    public RequestTokenTask(Context context, MyInterfaces.OnSaveOAuthTokenSecret listener) {
+    public RequestTokenTask(Context context, MyInterfaces.OnSaveOAuthRequestToken listener) {
         super();
         this.mContext = context;
         mListener = listener;
@@ -36,7 +33,7 @@ public class RequestTokenTask extends AsyncTask<Void, Integer, String> {
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        mProgressDialog = ProgressDialog.show(mContext,"", "Generating the authorization request...");
+        mProgressDialog = ProgressDialog.show(mContext,"", "Generating request...");
         mProgressDialog.setCanceledOnTouchOutside(true);
         mProgressDialog.setCancelable(true);
         mProgressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
@@ -48,21 +45,24 @@ public class RequestTokenTask extends AsyncTask<Void, Integer, String> {
     }
 
     @Override
-    protected String doInBackground(Void... params) {
+    protected String doInBackground(String... params) {
         try {
-            Flickr f = FlickrHelper.getInstance().getFlickr();
-            OAuthToken oauthToken = f.getOAuthInterface().getRequestToken(OAUTH_CALLBACK_URI.toString());
-            URL requestURL = f.getOAuthInterface().buildAuthenticationUrl(Permission.READ, oauthToken);
-            saveTokenSecrent(oauthToken.getOauthTokenSecret());
-            return requestURL.toString();
+            OAuth10aService service = new ServiceBuilder()
+                    .apiKey(params[0])
+                    .apiSecret(params[1])
+                    .callback(OAUTH_CALLBACK_URI)
+                    .build(FlickrApi.instance());
+            Token requestToken = service.getRequestToken();
+            saveToken(requestToken);
+            return service.getAuthorizationUrl(requestToken);
         } catch (Exception e) {
             Log.d("Error to oauth", e.getMessage());
             return "error:" + e.getMessage();
         }
     }
 
-    private void saveTokenSecrent(String tokenSecret) {
-        mListener.onSaveOAuthTokenSecret(tokenSecret);
+    private void saveToken(Token requestToken) {
+        mListener.onSaveOauthRequestToken(requestToken);
     }
 
     @Override
@@ -71,7 +71,8 @@ public class RequestTokenTask extends AsyncTask<Void, Integer, String> {
             mProgressDialog.dismiss();
         }
         if ((result != null) && !result.startsWith("error")) {
-            mContext.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(result)));
+            String url = result + "&perms=read";
+            mContext.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
         } else {
             Toast.makeText(mContext, result, Toast.LENGTH_LONG).show();
         }

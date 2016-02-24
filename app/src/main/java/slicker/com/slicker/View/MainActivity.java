@@ -14,13 +14,14 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.github.scribejava.core.model.Token;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.List;
+
+import slicker.com.slicker.Controller.Api;
 import slicker.com.slicker.Controller.MyInterfaces;
-import slicker.com.slicker.Controller.UserDetailsTask;
+import slicker.com.slicker.Model.Photo;
 import slicker.com.slicker.R;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener,MyInterfaces.OnGetUserInfo {
@@ -57,15 +58,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        getUserDetails();
+        getPhotos();
     }
 
     private void getUserDetails() {
-        String secret = sp.getString(KEY_TOKEN_SECRET,null);
-        String token = sp.getString(KEY_OAUTH_TOKEN,null);
-        String userId = sp.getString(KEY_USER_ID,null);
-        UserDetailsTask userDetailsTask = new UserDetailsTask(this,this);
-        userDetailsTask.execute(userId,token,secret);
+
+    }
+
+    private void getPhotos(){
+        Api.get(this).search("Monkey", new Api.SearchCallback() {
+            @Override
+            public void onSearchCompleted(List<Photo> photos) {
+                List<Photo> newPhotos = photos;
+            }
+        });
     }
 
     @Override
