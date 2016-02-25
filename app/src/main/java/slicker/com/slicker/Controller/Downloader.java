@@ -21,24 +21,30 @@ import java.io.OutputStream;
 public class Downloader {
     private static Downloader DOWNLOADER;
     private final RequestQueue queue;
+
     public static Downloader get(Context context) {
         if (DOWNLOADER == null) {
             DOWNLOADER = new Downloader(context);
         }
         return DOWNLOADER;
     }
+
     public Downloader(Context context) {
         queue = Volley.newRequestQueue(context);
     }
+
     public RequestQueue getQueue() {
         return queue;
     }
+
     public interface StringCallback {
         public void onDownloadReady(String result);
     }
+
     public interface DiskCallback {
         public void onDownloadReady(String path);
     }
+
     public void download(String url, final StringCallback cb) {
         queue.add(new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
@@ -52,6 +58,7 @@ public class Downloader {
             }
         }));
     }
+
     public Request download(String url, final File out, final DiskCallback cb) {
         return queue.add(new Request<String>(Request.Method.GET, url, new Response.ErrorListener() {
             @Override

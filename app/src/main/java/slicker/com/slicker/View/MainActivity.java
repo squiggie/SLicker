@@ -2,6 +2,7 @@ package slicker.com.slicker.View;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.view.View;
@@ -13,31 +14,42 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.List;
 
+import butterknife.ButterKnife;
+import io.realm.Realm;
+import io.realm.RealmQuery;
+import io.realm.RealmResults;
 import slicker.com.slicker.Controller.Api;
-import slicker.com.slicker.Controller.MyInterfaces;
 import slicker.com.slicker.Model.Photo;
+import slicker.com.slicker.Model.User;
 import slicker.com.slicker.R;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener,MyInterfaces.OnGetUserInfo {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private SharedPreferences sp;
     public static final String KEY_USER_ID = "slicker-userId";
     public static final String KEY_OAUTH_TOKEN = "oauthToken";
     public static final String KEY_TOKEN_SECRET = "tokenSecret";
     public static final String SP_KEY = "slicker_sp";
+    private Realm mRealm;
+    private User mUser;
+
+    private TextView tvRealName;
+    private TextView tvUserName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ButterKnife.bind(this);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        mRealm = Realm.getInstance(this);
         sp = getSharedPreferences(SP_KEY,MODE_PRIVATE);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -57,21 +69,54 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        View header = navigationView.getHeaderView(0);
+        tvRealName = (TextView) header.findViewById(R.id.tvRealName);
+        tvUserName = (TextView) header.findViewById(R.id.tvUsername);
 
-        getPhotos();
+        getUserDetails();
     }
 
     private void getUserDetails() {
+        String userID = sp.getString(KEY_USER_ID, null);
+        RealmQuery<User> query = mRealm.where(User.class);
+        query.equalTo("id",userID);
+        RealmResults<User> results  = query.findAll();
+        if (results.size() > 0) {
+            //existing user object
+            mUser = results.first();
+            displayUserInfo();
 
+        } else {
+            //No existing user so get from API
+            Api.get(this).getUserInfo(userID, new Api.UserInfoCallback() {
+                @Override
+                public void onUserInfoDownloadComplete(String result) {
+                    try {
+                        mUser = new User();
+                        JSONObject json = new JSONObject(result);
+                        JSONObject person = json.getJSONObject("person");
+                        if (result.contains("realname")){
+                            JSONObject realname = person.getJSONObject("realname");
+                            mUser.setRealName(realname.getString("_content"));
+                        }
+                        mUser.setId(person.getString("id"));
+                        JSONObject usernameJsonObject = person.getJSONObject("username");
+                        mUser.setUsername(usernameJsonObject.getString("_content"));
+                        mUser.setIconFarm(person.getInt("iconfarm"));
+                        mUser.setIconServer(Integer.valueOf(person.getString("iconserver")));
+                        saveNewUser();
+                        displayUserInfo();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
     }
 
-    private void getPhotos(){
-        Api.get(this).search("Monkey", new Api.SearchCallback() {
-            @Override
-            public void onSearchCompleted(List<Photo> photos) {
-                List<Photo> newPhotos = photos;
-            }
-        });
+    private void displayUserInfo() {
+        tvRealName.setText(mUser.getRealName());
+        tvUserName.setText(mUser.getUsername());
     }
 
     @Override
@@ -112,7 +157,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
+        /*if (id == R.id.nav_camera) {
             // Handle the camera action
         } else if (id == R.id.nav_gallery) {
 
@@ -125,18 +170,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if (id == R.id.nav_send) {
 
         }
-
+*/
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
 
-    @Override
-    public void onGetUserInfo(String response) {
-        try {
-            JSONObject user = new JSONObject(response);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+
+    private void saveNewUser(){
+        mRealm.beginTransaction();
+        mRealm.copyToRealmOrUpdate(mUser);
+        mRealm.commitTransaction();
     }
 }

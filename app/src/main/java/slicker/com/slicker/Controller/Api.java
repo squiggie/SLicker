@@ -7,6 +7,7 @@ import android.content.Context;
 import android.util.Log;
 
 import com.android.volley.Request;
+import com.android.volley.toolbox.JsonObjectRequest;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -29,8 +30,9 @@ public class Api {
     private static Api API;
     public static final String SEARCH_COMPLETED_ACTION = "search_completed";
     private static final String API_KEY = "1fc23d5d959ae5c917c963ceed83e493";
-    private static final String SIGNED_API_URL = "https://api.flickr.com/services/rest/?method=%s&format=json&api_key=" + API_KEY;
+    private static final String SIGNED_API_URL = "https://api.flickr.com/services/rest/?method=%s&format=json&nojsoncallback=1&api_key=" + API_KEY;
     private static final String PHOTO_URL = "http://farm%s.staticflickr.com/%s/%s_%s_%s.jpg";
+
     private static final Map<Integer, String> EDGE_TO_SIZE_KEY = new HashMap<Integer, String>() {{
         put(75, "s");
         put(100, "t");
@@ -40,11 +42,14 @@ public class Api {
         put(640, "z");
         put(1024, "b");
     }};
+
     private static final List<Integer> SORTED_SIZE_KEYS = new ArrayList<Integer>(EDGE_TO_SIZE_KEY.size());
+
     static {
         SORTED_SIZE_KEYS.addAll(EDGE_TO_SIZE_KEY.keySet());
         Collections.sort(SORTED_SIZE_KEYS);
     }
+
     private static String getSizeKey(int width, int height) {
         final int largestEdge = Math.max(width, height);
         String result = EDGE_TO_SIZE_KEY.get(SORTED_SIZE_KEYS.get(SORTED_SIZE_KEYS.size() - 1));
@@ -56,12 +61,19 @@ public class Api {
         }
         return result;
     }
+
     public interface SearchCallback {
         public void onSearchCompleted(List<Photo> photos);
     }
+
     public interface PhotoCallback {
         public void onDownloadComplete(String path);
     }
+
+    public interface UserInfoCallback{
+        public void onUserInfoDownloadComplete(String result);
+    }
+
     private final Downloader downloader;
     private Set<String> downloadedFilesNames = new HashSet<String>();
     private final String sizeKey;
@@ -83,15 +95,23 @@ public class Api {
             return null;
         }
     }
+
     private static String getUrlForMethod(String method) {
         return String.format(SIGNED_API_URL, method);
     }
+
+    private static String getUserInfo (String userID){
+        return getUrlForMethod("flickr.people.getinfo") + "&user_id=" + userID;
+    }
+
     private static String getSearchUrl(String text) {
         return getUrlForMethod("flickr.photos.search") + "&text=" + text + "&per_page=500";
     }
+
     private static String getPhotoUrl(Photo photo, String sizeKey) {
         return String.format(PHOTO_URL, photo.farm, photo.server, photo.id, photo.secret, sizeKey);
     }
+
     public void search(String text, final SearchCallback cb) {
         Log.d("API:", "searching");
         downloader.download(getSearchUrl(text), new Downloader.StringCallback() {
@@ -112,6 +132,7 @@ public class Api {
             }
         });
     }
+
     public Request downloadPhoto(Photo photo, File cacheDir, final PhotoCallback cb) {
         File out = new File(cacheDir.getPath() + File.separator + photo.id + photo.secret + sizeKey);
         final String path = out.getPath();
@@ -129,5 +150,14 @@ public class Api {
             });
         }
         return result;
+    }
+
+    public void getUserInfo(String userID, final UserInfoCallback user){
+        downloader.download(getUserInfo(userID), new Downloader.StringCallback() {
+            @Override
+            public void onDownloadReady(String result) {
+                user.onUserInfoDownloadComplete(result);
+            }
+        });
     }
 }

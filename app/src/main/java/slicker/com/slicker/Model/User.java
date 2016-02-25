@@ -2,12 +2,19 @@ package slicker.com.slicker.Model;
 
 import java.util.Date;
 
+import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
+import io.realm.annotations.RealmClass;
+
 /**
  * Created by squiggie on 2/24/16.
  */
-public class User {
+@RealmClass
+public class User extends RealmObject{
 
+    @PrimaryKey
     private String id;
+
     private String username;
     private int iconFarm;
     private int iconServer;
@@ -16,6 +23,12 @@ public class User {
     private String pathAlias;
     private Date photosFirstDate;
     private Date photosFirstDateTaken;
+    private Date faveDate;
+    private int photosCount;
+    private long filesizeMax;
+    private String photosurl;
+    private String profileurl;
+    private String mobileurl;
 
     public String getId() {
         return id;
@@ -136,12 +149,5 @@ public class User {
     public void setMobileurl(String mobileurl) {
         this.mobileurl = mobileurl;
     }
-
-    private Date faveDate;
-    private int photosCount;
-    private long filesizeMax;
-    private String photosurl;
-    private String profileurl;
-    private String mobileurl;
 
 }
