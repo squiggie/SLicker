@@ -3,16 +3,15 @@ package slicker.com.slicker.Controller;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.net.Uri;
 import android.os.AsyncTask;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.github.scribejava.apis.FlickrApi;
 import com.github.scribejava.core.builder.ServiceBuilder;
 import com.github.scribejava.core.model.Token;
 import com.github.scribejava.core.oauth.OAuth10aService;
+
+import slicker.com.slicker.View.LoginActivity;
 
 /**
  * Created by squiggie on 2/23/16.
@@ -23,11 +22,13 @@ public class RequestTokenTask extends AsyncTask<String, Integer, String> {
     private Context mContext;
     private ProgressDialog mProgressDialog;
     private MyInterfaces.OnSaveOAuthRequestToken mListener;
+    private MyInterfaces.OnRequestTokenTaskCompleted mListener2;
 
-    public RequestTokenTask(Context context, MyInterfaces.OnSaveOAuthRequestToken listener) {
+    public RequestTokenTask(Context context, MyInterfaces.OnSaveOAuthRequestToken listener, MyInterfaces.OnRequestTokenTaskCompleted listener2) {
         super();
         this.mContext = context;
         mListener = listener;
+        mListener2 = listener2;
     }
 
     @Override
@@ -56,7 +57,6 @@ public class RequestTokenTask extends AsyncTask<String, Integer, String> {
             saveToken(requestToken);
             return service.getAuthorizationUrl(requestToken);
         } catch (Exception e) {
-            Log.d("Error to oauth", e.getMessage());
             return "error:" + e.getMessage();
         }
     }
@@ -71,8 +71,7 @@ public class RequestTokenTask extends AsyncTask<String, Integer, String> {
             mProgressDialog.dismiss();
         }
         if ((result != null) && !result.startsWith("error")) {
-            String url = result + "&perms=read";
-            mContext.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+            mListener2.onRequestTokenTaskCompleted(result);
         } else {
             Toast.makeText(mContext, result, Toast.LENGTH_LONG).show();
         }

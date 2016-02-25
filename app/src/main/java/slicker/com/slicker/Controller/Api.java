@@ -7,6 +7,7 @@ import android.content.Context;
 import android.util.Log;
 
 import com.android.volley.Request;
+import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 
 import org.json.JSONArray;
@@ -32,6 +33,7 @@ public class Api {
     private static final String API_KEY = "1fc23d5d959ae5c917c963ceed83e493";
     private static final String SIGNED_API_URL = "https://api.flickr.com/services/rest/?method=%s&format=json&nojsoncallback=1&api_key=" + API_KEY;
     private static final String PHOTO_URL = "http://farm%s.staticflickr.com/%s/%s_%s_%s.jpg";
+    private static final String BUDDYICON_URL = "http://farm%s.staticflickr.com/%s/buddyicons/%s.jpg";
 
     private static final Map<Integer, String> EDGE_TO_SIZE_KEY = new HashMap<Integer, String>() {{
         put(75, "s");
@@ -72,6 +74,7 @@ public class Api {
 
     public interface UserInfoCallback{
         public void onUserInfoDownloadComplete(String result);
+        public void onUserInfoDownloadComplete(VolleyError error);
     }
 
     private final Downloader downloader;
@@ -87,14 +90,14 @@ public class Api {
         this.downloader = Downloader.get(applicationContext);
         this.sizeKey = getSizeKey(maxPhotoSize, maxPhotoSize);
     }
-    public static URL getPhotoURL(Photo photo, int width, int height) {
+    /*public static URL getPhotoURL(Photo photo, int width, int height) {
         try {
             return new URL(getPhotoUrl(photo, getSizeKey(width, height)));
         } catch (MalformedURLException e) {
             e.printStackTrace();
             return null;
         }
-    }
+    }*/
 
     private static String getUrlForMethod(String method) {
         return String.format(SIGNED_API_URL, method);
@@ -109,7 +112,11 @@ public class Api {
     }
 
     private static String getPhotoUrl(Photo photo, String sizeKey) {
-        return String.format(PHOTO_URL, photo.farm, photo.server, photo.id, photo.secret, sizeKey);
+        return String.format(PHOTO_URL, photo.getFarm(), photo.getSecret(), photo.getId(), photo.getSecret(), sizeKey);
+    }
+
+    private static String getBuddyIconUrl(Photo photo){
+        return String.format(BUDDYICON_URL,photo.getFarm(), photo.getServer(), photo.getId());
     }
 
     public void search(String text, final SearchCallback cb) {
@@ -130,18 +137,40 @@ public class Api {
                     e.printStackTrace();
                 }
             }
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+            }
         });
     }
 
     public Request downloadPhoto(Photo photo, File cacheDir, final PhotoCallback cb) {
-        File out = new File(cacheDir.getPath() + File.separator + photo.id + photo.secret + sizeKey);
+        File out = new File(cacheDir.getPath() + File.separator + photo.getId() + photo.getSecret() + sizeKey);
         final String path = out.getPath();
         Request result = null;
         if (downloadedFilesNames.contains(path)) {
             cb.onDownloadComplete(path);
         } else {
-            Log.d("API:","missing photo, downloading");
             result = downloader.download(getPhotoUrl(photo, sizeKey), out, new Downloader.DiskCallback() {
+                @Override
+                public void onDownloadReady(String path) {
+                    downloadedFilesNames.add(path);
+                    cb.onDownloadComplete(path);
+                }
+            });
+        }
+        return result;
+    }
+
+    public Request downloadBuddyIcon(Photo photo, File cacheDir, final PhotoCallback cb) {
+        File out = new File(cacheDir.getPath() + File.separator + "buddyicon" + photo.getId());
+        final String path = out.getPath();
+        Request result = null;
+        if (downloadedFilesNames.contains(path)) {
+            cb.onDownloadComplete(path);
+        } else {
+            result = downloader.download(getBuddyIconUrl(photo), out, new Downloader.DiskCallback() {
                 @Override
                 public void onDownloadReady(String path) {
                     downloadedFilesNames.add(path);
@@ -157,6 +186,10 @@ public class Api {
             @Override
             public void onDownloadReady(String result) {
                 user.onUserInfoDownloadComplete(result);
+            }
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                user.onUserInfoDownloadComplete(error);
             }
         });
     }

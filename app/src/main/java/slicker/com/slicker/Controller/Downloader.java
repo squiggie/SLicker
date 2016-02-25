@@ -39,6 +39,7 @@ public class Downloader {
 
     public interface StringCallback {
         public void onDownloadReady(String result);
+        public void onErrorResponse(VolleyError error);
     }
 
     public interface DiskCallback {
@@ -54,7 +55,7 @@ public class Downloader {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                error.printStackTrace();
+                cb.onErrorResponse(error);
             }
         }));
     }

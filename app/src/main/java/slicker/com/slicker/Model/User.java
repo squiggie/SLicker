@@ -29,6 +29,15 @@ public class User extends RealmObject{
     private String photosurl;
     private String profileurl;
     private String mobileurl;
+    private String buddyIconPath;
+
+    public String getBuddyIconPath() {
+        return buddyIconPath;
+    }
+
+    public void setBuddyIconPath(String buddyIconPath) {
+        this.buddyIconPath = buddyIconPath;
+    }
 
     public String getId() {
         return id;

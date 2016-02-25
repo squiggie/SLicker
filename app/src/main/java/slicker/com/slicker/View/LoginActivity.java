@@ -5,6 +5,9 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -21,34 +24,27 @@ import slicker.com.slicker.Controller.AccessTokenTask;
 import slicker.com.slicker.Controller.MyInterfaces;
 import slicker.com.slicker.Controller.RequestTokenTask;
 import slicker.com.slicker.Controller.UserInfoTask;
+import slicker.com.slicker.Model.MyConstants;
 import slicker.com.slicker.Model.OAuth;
 import slicker.com.slicker.Model.OAuthToken;
 import slicker.com.slicker.Model.User;
 import slicker.com.slicker.R;
 
-public class LoginActivity extends AppCompatActivity implements MyInterfaces.OnAccessTokenTaskCompleted, MyInterfaces.OnSaveOAuthRequestToken, MyInterfaces.OnGetUserInfo{
+public class LoginActivity extends AppCompatActivity implements MyInterfaces.OnAccessTokenTaskCompleted, MyInterfaces.OnSaveOAuthRequestToken, MyInterfaces.OnGetUserInfo,
+    MyInterfaces.OnRequestTokenTaskCompleted{
 
-    private static final String CALLBACK_SCHEME = "slicker";
     @Bind(R.id.login) Button btnLogin;
     @Bind(R.id.slicker) TextView slicker;
     @Bind(R.id.reset) Button btnReset;
-
+    @Bind(R.id.webView) WebView webView;
     private SharedPreferences sp;
-
-    private static final String KEY_OAUTH_TOKEN = "oauthToken";
-    private static final String KEY_TOKEN_SECRET = "tokenSecret";
-    private static final String KEY_USER_NAME = "slicker-userName";
-    private static final String KEY_USER_ID = "slicker-userId";
-    private static final String SP_KEY = "slicker_sp";
-    private static final String API_KEY = "1fc23d5d959ae5c917c963ceed83e493";
-    private static final String API_SEC = "038c3d980b655413";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         ButterKnife.bind(this);
-        sp = getSharedPreferences(SP_KEY,MODE_PRIVATE);
+        sp = getSharedPreferences(MyConstants.SP_KEY,MODE_PRIVATE);
 
         OAuth oauth = getOAuthToken();
         if (oauth != null) {
@@ -56,34 +52,53 @@ public class LoginActivity extends AppCompatActivity implements MyInterfaces.OnA
                 startSlicker();
             }
         }
+
+        webView.setWebViewClient(new WebViewClient(){
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                if (url.startsWith(MyConstants.CALLBACK_SCHEME)){
+                    Uri uri = Uri.parse(url);
+                    toggleVisability();
+                    completeOAuthVerify(uri);
+                    return true;
+                }
+
+                return false;
+            }
+        });
+        webView.getSettings().setJavaScriptEnabled(true);
+        webView.getSettings().setAppCacheEnabled(false);
+        webView.clearCache(true);
+        webView.clearFormData();
+        webView.clearHistory();
     }
 
     @OnClick(R.id.login)
     public void login(){
-        RequestTokenTask task = new RequestTokenTask(this,this);
-        task.execute(API_KEY, API_SEC);
+        RequestTokenTask task = new RequestTokenTask(this,this,this);
+        task.execute(MyConstants.API_KEY, MyConstants.API_SEC);
     }
 
     @OnClick(R.id.reset)
     public void resetTokens(){
         SharedPreferences.Editor editor = sp.edit();
-        editor.putString(KEY_TOKEN_SECRET,null);
-        editor.putString(KEY_OAUTH_TOKEN,null);
-        editor.putString(KEY_USER_ID, null);
-        editor.putString(KEY_USER_NAME, null);
+        editor.putString(MyConstants.KEY_TOKEN_SECRET,null);
+        editor.putString(MyConstants.KEY_OAUTH_TOKEN, null);
+        editor.putString(MyConstants.KEY_USER_ID, null);
+        editor.putString(MyConstants.KEY_USER_NAME, null);
         editor.apply();
     }
 
     public OAuth getOAuthToken() {
         //Restore preferences
-        String oauthTokenString = sp.getString(KEY_OAUTH_TOKEN, null);
-        String tokenSecret = sp.getString(KEY_TOKEN_SECRET, null);
+        String oauthTokenString = sp.getString(MyConstants.KEY_OAUTH_TOKEN, null);
+        String tokenSecret = sp.getString(MyConstants.KEY_TOKEN_SECRET, null);
         if (oauthTokenString == null && tokenSecret == null) {
             return null;
         }
         OAuth oauth = new OAuth();
-        String userName = sp.getString(KEY_USER_NAME, null);
-        String userId = sp.getString(KEY_USER_ID, null);
+        String userName = sp.getString(MyConstants.KEY_USER_NAME, null);
+        String userId = sp.getString(MyConstants.KEY_USER_ID, null);
         if (userId != null) {
             User user = new User();
             user.setUsername(userName);
@@ -97,13 +112,10 @@ public class LoginActivity extends AppCompatActivity implements MyInterfaces.OnA
         return oauth;
     }
 
-
-
     private void startSlicker(){
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
     }
-
 
     @Override
     public void onAccessTokenTaskCompleted(Token accessToken) {
@@ -112,7 +124,7 @@ public class LoginActivity extends AppCompatActivity implements MyInterfaces.OnA
         } else {
             saveOAuthToken(null,null,accessToken.getToken(),accessToken.getSecret());
             UserInfoTask userInfo = new UserInfoTask(this);
-            userInfo.execute(API_KEY,API_SEC,accessToken.getToken(),accessToken.getSecret());
+            userInfo.execute(MyConstants.API_KEY, MyConstants.API_SEC, accessToken.getToken(), accessToken.getSecret());
         }
 
     }
@@ -125,33 +137,19 @@ public class LoginActivity extends AppCompatActivity implements MyInterfaces.OnA
     @Override
     public void onResume() {
         super.onResume();
-        Intent intent = getIntent();
-        String scheme = intent.getScheme();
-        OAuth savedToken = getOAuthToken();
-        if (CALLBACK_SCHEME.equals(scheme) && (savedToken == null || savedToken.getUser() == null)) {
-            Uri uri = intent.getData();
-            String query = uri.getQuery();
-            String[] data = query.split("&");
-
-            if (data != null && data.length == 2) {
-                String oauthToken = data[0].substring(data[0].indexOf("=") + 1);
-                String oauthVerifier = data[1].substring(data[1].indexOf("=") + 1);
-                saveOAuthToken(null,null,oauthToken,null);
-                OAuth oauth = getOAuthToken();
-                if (oauth != null && oauth.getToken() != null && oauth.getToken().getOauthTokenSecret() != null) {
-                    AccessTokenTask task = new AccessTokenTask(this,this);
-                    task.execute(API_KEY,API_SEC,oauthToken,oauth.getToken().getOauthTokenSecret(),oauthVerifier);
-                }
-            }
-        }
+        //Intent intent = getIntent();
+        //String scheme = intent.getScheme();
+        //OAuth savedToken = getOAuthToken();
+        //if (MyConstants.CALLBACK_SCHEME.equals(scheme) && (savedToken == null || savedToken.getUser() == null)) {
+        //}
     }
 
     public void saveOAuthToken(String userName, String userId, String token, String tokenSecret) {
         SharedPreferences.Editor editor = sp.edit();
-        if (token != null) { editor.putString(KEY_OAUTH_TOKEN, token); }
-        if (tokenSecret != null){editor.putString(KEY_TOKEN_SECRET, tokenSecret);}
-        if (userName != null) {editor.putString(KEY_USER_NAME, userName);}
-        if (userId != null) {editor.putString(KEY_USER_ID, userId);}
+        if (token != null) { editor.putString(MyConstants.KEY_OAUTH_TOKEN, token); }
+        if (tokenSecret != null){editor.putString(MyConstants.KEY_TOKEN_SECRET, tokenSecret);}
+        if (userName != null) {editor.putString(MyConstants.KEY_USER_NAME, userName);}
+        if (userId != null) {editor.putString(MyConstants.KEY_USER_ID, userId);}
         editor.commit();
     }
 
@@ -159,8 +157,8 @@ public class LoginActivity extends AppCompatActivity implements MyInterfaces.OnA
     @Override
     public void onSaveOauthRequestToken(Token requestToken) {
         SharedPreferences.Editor editor = sp.edit();
-        editor.putString(KEY_TOKEN_SECRET, requestToken.getSecret());
-        editor.putString(KEY_OAUTH_TOKEN,requestToken.getToken());
+        editor.putString(MyConstants.KEY_TOKEN_SECRET, requestToken.getSecret());
+        editor.putString(MyConstants.KEY_OAUTH_TOKEN,requestToken.getToken());
         editor.apply();
     }
 
@@ -182,5 +180,56 @@ public class LoginActivity extends AppCompatActivity implements MyInterfaces.OnA
         } else {
             Toast.makeText(this, "Authorization failed", Toast.LENGTH_LONG).show();
         }
+    }
+
+    private void completeOAuthVerify(Uri uri){
+        if (uri != null){
+
+            String query = uri.getQuery();
+            String[] data = query.split("&");
+
+            if (data != null && data.length == 2) {
+                String oauthToken = data[0].substring(data[0].indexOf("=") + 1);
+                String oauthVerifier = data[1].substring(data[1].indexOf("=") + 1);
+                saveOAuthToken(null,null,oauthToken,null);
+                OAuth oauth = getOAuthToken();
+                if (oauth != null && oauth.getToken() != null && oauth.getToken().getOauthTokenSecret() != null) {
+                    AccessTokenTask task = new AccessTokenTask(this,this);
+                    task.execute(MyConstants.API_KEY, MyConstants.API_SEC,oauthToken,oauth.getToken().getOauthTokenSecret(),oauthVerifier);
+                }
+            }
+        }
+    }
+
+    private void toggleVisability(){
+        if (btnLogin.getVisibility() == View.GONE){
+            btnLogin.setVisibility(View.VISIBLE);
+        } else {
+            btnLogin.setVisibility(View.GONE);
+        }
+
+        if (btnReset.getVisibility() == View.GONE){
+            btnReset.setVisibility(View.VISIBLE);
+        } else {
+            btnReset.setVisibility(View.GONE);
+        }
+
+        if (webView.getVisibility() == View.GONE){
+            webView.setVisibility(View.VISIBLE);
+        } else {
+            webView.setVisibility(View.GONE);
+        }
+
+        if (slicker.getVisibility() == View.GONE){
+            slicker.setVisibility(View.VISIBLE);
+        } else {
+            slicker.setVisibility(View.GONE);
+        }
+    }
+
+    @Override
+    public void onRequestTokenTaskCompleted(String url) {
+        toggleVisability();
+        webView.loadUrl(url);
     }
 }
