@@ -3,6 +3,7 @@ package slicker.com.slicker.Controller;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.util.Log;
 
 /**
  * Created by squiggie on 2/26/16.
@@ -34,7 +35,7 @@ public abstract class RecyclerOnScrollListener  extends RecyclerView.OnScrollLis
             }
         }
         if (!loading && (totalItemCount - visibleItemCount) <= (firstVisibleItem + visibleThreshold)) {
-            // End has been reached
+            Log.d("Loading","End threshold reached at tiem " + visibleItemCount + "Loading more");
             onLoadMore();
             loading = true;
         }

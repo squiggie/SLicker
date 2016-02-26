@@ -128,7 +128,7 @@ public class InterestingPhotoFragment extends android.support.v4.app.Fragment im
     @Override
     public void onRefresh() {
         mCurrentPage = 0;
-        mNumOfPages = 1;
+        mNumOfPages = 100;
         mAdapter.clear();
         mAdapter.notifyDataSetChanged();
         mSwipeContainer.setRefreshing(true);

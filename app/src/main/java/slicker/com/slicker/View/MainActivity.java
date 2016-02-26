@@ -175,7 +175,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             if (id == R.id.nav_intereesting){
                 fragment = InterestingPhotoFragment.newInstance();
             } else if (id == R.id.nav_myphotos){
-                
+
             } else if (id == R.id.nav_favorites){
                 fragment = FavoritePhotosFragment.newInstance();
             } else {
