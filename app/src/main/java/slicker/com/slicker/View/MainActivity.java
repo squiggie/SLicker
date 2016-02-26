@@ -3,10 +3,11 @@ package slicker.com.slicker.View;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -21,6 +22,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.VolleyError;
+import com.bumptech.glide.Glide;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,21 +36,18 @@ import io.realm.RealmQuery;
 import io.realm.RealmResults;
 import slicker.com.slicker.Controller.Api;
 import slicker.com.slicker.Model.MyConstants;
-import slicker.com.slicker.Model.Photo;
 import slicker.com.slicker.Model.User;
 import slicker.com.slicker.R;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, InterestingPhotosFragment.OnFragmentInteractionListener {
 
     private SharedPreferences sp;
     private Realm mRealm;
     private User mUser;
-    private Photo mBuddyIcon;
-    private File mCacheDir;
 
     private TextView tvRealName;
     private TextView tvUserName;
-    private ImageView imBuddyIcon;
+    private ImageView ivBuddyIcon;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,17 +57,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         mRealm = Realm.getInstance(this);
-        sp = getSharedPreferences(MyConstants.SP_KEY,MODE_PRIVATE);
-        mCacheDir = new File(getCacheDir(),MyConstants.CACHE_DIR);
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        sp = getSharedPreferences(MyConstants.SP_KEY, MODE_PRIVATE);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -81,21 +70,30 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         View header = navigationView.getHeaderView(0);
         tvRealName = (TextView) header.findViewById(R.id.tvRealName);
         tvUserName = (TextView) header.findViewById(R.id.tvUsername);
-        imBuddyIcon = (ImageView) header.findViewById(R.id.buddyIcon);
+        ivBuddyIcon = (ImageView) header.findViewById(R.id.buddyIcon);
 
         getUserDetails();
 
+
+
+    }
+
+    private File getDiskCacheDir(String name) {
+        // Check if media is mounted or storage is built-in, if so, try and use external cache dir
+        // otherwise use internal cache dir
+        final String cachePath = getApplicationContext().getCacheDir().getPath();
+        return new File(cachePath + File.separator + name);
     }
 
     private void getUserDetails() {
         String userID = sp.getString(MyConstants.KEY_USER_ID, null);
         RealmQuery<User> query = mRealm.where(User.class);
-        query.equalTo("id",userID);
+        query.equalTo("id", userID);
         RealmResults<User> results  = query.findAll();
         if (results.size() > 0) {
             //existing user object
             mUser = results.first();
-            displayUserInfo(mUser.getBuddyIconPath());
+            displayUserInfo();
 
         } else {
 
@@ -105,7 +103,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 public void onUserInfoDownloadComplete(String result) {
                     try {
                         mUser = new User();
-                        mBuddyIcon = new Photo();
                         JSONObject json = new JSONObject(result);
                         JSONObject person = json.getJSONObject("person");
                         if (result.contains("realname")) {
@@ -113,26 +110,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             mUser.setRealName(realname.getString("_content"));
                         }
                         mUser.setId(person.getString("id"));
-                        mBuddyIcon.setId(person.getString("id"));
                         JSONObject usernameJsonObject = person.getJSONObject("username");
                         mUser.setUsername(usernameJsonObject.getString("_content"));
                         mUser.setIconFarm(person.getInt("iconfarm"));
-                        mBuddyIcon.setFarm(person.getInt("iconfarm"));
                         mUser.setIconServer(Integer.valueOf(person.getString("iconserver")));
-                        mBuddyIcon.setServer((Integer.valueOf(person.getString("iconserver"))));
-                        Api.get(getApplicationContext()).downloadBuddyIcon(mBuddyIcon, mCacheDir, new Api.PhotoCallback() {
-                            @Override
-                            public void onDownloadComplete(String path) {
-                                mUser.setBuddyIconPath(path);
-                                saveNewUser();
-                                displayUserInfo(path);
-                            }
-                        });
+                        saveNewUser();
+                        displayUserInfo();
                     } catch (JSONException e) {
                         Toast.makeText(getApplicationContext(), R.string.basic_error, Toast.LENGTH_LONG).show();
                     }
                 }
-
                 @Override
                 public void onUserInfoDownloadComplete(VolleyError error) {
                     Toast.makeText(getApplicationContext(),R.string.basic_error,Toast.LENGTH_LONG).show();
@@ -141,14 +128,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    private void displayUserInfo(String buddyIconPath) {
-        File buddyIcon = new File(buddyIconPath);
-        if (buddyIcon.exists()){
-            Bitmap bitmap = BitmapFactory.decodeFile(buddyIcon.getAbsolutePath());
-            imBuddyIcon.setImageBitmap(bitmap);
-        }
+    private void displayUserInfo() {
         tvRealName.setText(mUser.getRealName());
         tvUserName.setText(mUser.getUsername());
+        String buddyIconPath = String.format(MyConstants.BUDDY_ICON_URI, mUser.getIconFarm(), mUser.getIconServer(), mUser.getId());
+        Glide.with(this).load(buddyIconPath).asBitmap().into(ivBuddyIcon);
+
+        /*mImageLoader.loadImage(buddyIconPath, new SimpleImageLoadingListener() {
+            @Override
+            public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+                if (loadedImage != null) {
+                    ivBuddyIcon.setImageBitmap(loadedImage);
+                }
+            }
+        });*/
     }
 
     @Override
@@ -168,37 +161,39 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return true;
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
-
         switch (id){
             case R.id.nav_logout:
                 logout();
                 break;
+            case R.id.nav_favorites:
+                break;
+            case R.id.nav_intereesting:
+                replaceFragment(R.layout.fragment_interesting_photos);
+                break;
+
         }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
 
+    private void replaceFragment(Integer fragID){
+        Fragment fragment = null;
+
+        try {
+            fragment = InterestingPhotosFragment.newInstance(this);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction().replace(R.id.llContent,fragment).commit();
+    }
 
     private void saveNewUser(){
         mRealm.beginTransaction();
@@ -216,12 +211,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         results.clear();
         mRealm.commitTransaction();
 
-        //delete all file cache
-
         //send back to Login
-        //System.exit(0);
         Intent intent = getBaseContext().getPackageManager().getLaunchIntentForPackage(getBaseContext().getPackageName());
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(intent);
     }
+
+    @Override
+    public void onFragmentInteraction(Uri uri) {
+        Log.d("Frag:",uri.toString());
+    }
 }
+

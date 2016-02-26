@@ -8,6 +8,7 @@ import android.util.Log;
 
 import com.android.volley.Request;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.JsonObjectRequest;
 
 import org.json.JSONArray;
@@ -64,12 +65,17 @@ public class Api {
         return result;
     }
 
-    public interface SearchCallback {
+    /*public interface SearchCallback {
         public void onSearchCompleted(List<Photo> photos);
     }
 
     public interface PhotoCallback {
         public void onDownloadComplete(String path);
+    }*/
+
+    public interface JSONCallback{
+        public void onGetJSONComplete(JSONObject json);
+        public void onGetJSONComplete(VolleyError error);
     }
 
     public interface UserInfoCallback{
@@ -115,11 +121,23 @@ public class Api {
         return String.format(PHOTO_URL, photo.getFarm(), photo.getSecret(), photo.getId(), photo.getSecret(), sizeKey);
     }
 
-    private static String getBuddyIconUrl(Photo photo){
-        return String.format(BUDDYICON_URL,photo.getFarm(), photo.getServer(), photo.getId());
+    public void getJSON(String url, final JSONCallback cb){
+        downloader.download(url, new Downloader.StringCallback() {
+            @Override
+            public void onDownloadReady(String result) {
+                try {
+                    JSONObject json = new JSONObject(result);
+                    cb.onGetJSONComplete(json);
+                } catch (JSONException e) {
+                }
+            }
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                cb.onGetJSONComplete(error);
+            }
+        });
     }
-
-    public void search(String text, final SearchCallback cb) {
+    /*public void search(String text, final SearchCallback cb) {
         Log.d("API:", "searching");
         downloader.download(getSearchUrl(text), new Downloader.StringCallback() {
             @Override
@@ -143,9 +161,9 @@ public class Api {
 
             }
         });
-    }
+    }*/
 
-    public Request downloadPhoto(Photo photo, File cacheDir, final PhotoCallback cb) {
+    /*public Request downloadPhoto(Photo photo, File cacheDir, final PhotoCallback cb) {
         File out = new File(cacheDir.getPath() + File.separator + photo.getId() + photo.getSecret() + sizeKey);
         final String path = out.getPath();
         Request result = null;
@@ -161,27 +179,9 @@ public class Api {
             });
         }
         return result;
-    }
+    }*/
 
-    public Request downloadBuddyIcon(Photo photo, File cacheDir, final PhotoCallback cb) {
-        File out = new File(cacheDir.getPath() + File.separator + "buddyicon" + photo.getId());
-        final String path = out.getPath();
-        Request result = null;
-        if (downloadedFilesNames.contains(path)) {
-            cb.onDownloadComplete(path);
-        } else {
-            result = downloader.download(getBuddyIconUrl(photo), out, new Downloader.DiskCallback() {
-                @Override
-                public void onDownloadReady(String path) {
-                    downloadedFilesNames.add(path);
-                    cb.onDownloadComplete(path);
-                }
-            });
-        }
-        return result;
-    }
-
-    public void getUserInfo(String userID, final UserInfoCallback user){
+        public void getUserInfo(String userID, final UserInfoCallback user){
         downloader.download(getUserInfo(userID), new Downloader.StringCallback() {
             @Override
             public void onDownloadReady(String result) {

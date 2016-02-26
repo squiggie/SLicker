@@ -6,4 +6,7 @@
     <string name="title_activity_login">Sign in</string>
     <string name="login_title">Slicker</string>
     <string name="basic_error">Oops something went wrong. Try again.</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

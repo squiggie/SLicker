@@ -4,11 +4,15 @@ package slicker.com.slicker.Controller;
  * Created by squiggie on 2/24/16.
  */
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.util.LruCache;
+
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import java.io.BufferedOutputStream;
@@ -42,9 +46,9 @@ public class Downloader {
         public void onErrorResponse(VolleyError error);
     }
 
-    public interface DiskCallback {
-        public void onDownloadReady(String path);
-    }
+//    public interface DiskCallback {
+//        public void onDownloadReady(String path);
+//    }
 
     public void download(String url, final StringCallback cb) {
         queue.add(new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
@@ -60,7 +64,7 @@ public class Downloader {
         }));
     }
 
-    public Request download(String url, final File out, final DiskCallback cb) {
+    /*public Request download(String url, final File out, final DiskCallback cb) {
         return queue.add(new Request<String>(Request.Method.GET, url, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
@@ -91,5 +95,5 @@ public class Downloader {
                 cb.onDownloadReady(response);
             }
         });
-    }
+    }*/
 }

@@ -16,7 +16,6 @@ public class Photo {
     private String secret;
 
     public Photo(){
-
     }
 
     public Photo(JSONObject jsonPhoto) throws JSONException {
