@@ -24,4 +24,8 @@ public class MyInterfaces {
     public interface OnGetUserInfo{
         void onGetUserInfo(String response);
     }
+
+    public interface OnGetFavoritePhotos{
+        void onGetFavoritePhotos(String response);
+    }
 }

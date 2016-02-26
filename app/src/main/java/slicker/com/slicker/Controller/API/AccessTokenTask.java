@@ -1,4 +1,4 @@
-package slicker.com.slicker.Controller;
+package slicker.com.slicker.Controller.API;
 
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -12,6 +12,7 @@ import com.github.scribejava.core.model.Token;
 import com.github.scribejava.core.model.Verifier;
 import com.github.scribejava.core.oauth.OAuth10aService;
 
+import slicker.com.slicker.Controller.MyInterfaces;
 import slicker.com.slicker.R;
 
 /**
@@ -31,7 +32,6 @@ public class AccessTokenTask extends AsyncTask<String, Integer, Token> {
 
     @Override
     protected void onPreExecute() {
-        super.onPreExecute();
         super.onPreExecute();
         mProgressDialog = ProgressDialog.show(mContext,"", "Completing request...");
         mProgressDialog.setCanceledOnTouchOutside(true);

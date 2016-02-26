@@ -1,4 +1,4 @@
-package slicker.com.slicker.Controller;
+package slicker.com.slicker.Controller.API;
 
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -11,7 +11,7 @@ import com.github.scribejava.core.builder.ServiceBuilder;
 import com.github.scribejava.core.model.Token;
 import com.github.scribejava.core.oauth.OAuth10aService;
 
-import slicker.com.slicker.View.LoginActivity;
+import slicker.com.slicker.Controller.MyInterfaces;
 
 /**
  * Created by squiggie on 2/23/16.

@@ -2,9 +2,9 @@ package slicker.com.slicker.View;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.util.Log;
@@ -28,18 +28,17 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 
-import java.io.File;
-
 import butterknife.ButterKnife;
 import io.realm.Realm;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
-import slicker.com.slicker.Controller.Api;
+import slicker.com.slicker.Controller.API.Api;
+import slicker.com.slicker.Controller.API.FavoritePhotosAsyncTask;
 import slicker.com.slicker.Model.MyConstants;
 import slicker.com.slicker.Model.User;
 import slicker.com.slicker.R;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, InterestingPhotosFragment.OnFragmentInteractionListener {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, InterestingPhotoFragment.OnFragmentInteractionListener{
 
     private SharedPreferences sp;
     private Realm mRealm;
@@ -48,6 +47,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private TextView tvRealName;
     private TextView tvUserName;
     private ImageView ivBuddyIcon;
+    private boolean mFirstRun = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,9 +59,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mRealm = Realm.getInstance(this);
         sp = getSharedPreferences(MyConstants.SP_KEY, MODE_PRIVATE);
 
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setVisibility(View.GONE);
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
@@ -74,15 +75,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         getUserDetails();
 
-
-
-    }
-
-    private File getDiskCacheDir(String name) {
-        // Check if media is mounted or storage is built-in, if so, try and use external cache dir
-        // otherwise use internal cache dir
-        final String cachePath = getApplicationContext().getCacheDir().getPath();
-        return new File(cachePath + File.separator + name);
+        if (mFirstRun){
+            replaceFragment(R.id.nav_favorites);
+            mFirstRun = false;
+        }
     }
 
     private void getUserDetails() {
@@ -133,15 +129,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         tvUserName.setText(mUser.getUsername());
         String buddyIconPath = String.format(MyConstants.BUDDY_ICON_URI, mUser.getIconFarm(), mUser.getIconServer(), mUser.getId());
         Glide.with(this).load(buddyIconPath).asBitmap().into(ivBuddyIcon);
-
-        /*mImageLoader.loadImage(buddyIconPath, new SimpleImageLoadingListener() {
-            @Override
-            public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
-                if (loadedImage != null) {
-                    ivBuddyIcon.setImageBitmap(loadedImage);
-                }
-            }
-        });*/
     }
 
     @Override
@@ -166,29 +153,36 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
-        switch (id){
-            case R.id.nav_logout:
-                logout();
-                break;
-            case R.id.nav_favorites:
-                break;
-            case R.id.nav_intereesting:
-                replaceFragment(R.layout.fragment_interesting_photos);
-                break;
+
+        if (id == R.id.nav_logout){
+            logout();
+        } else if (id == R.id.nav_favorites || id == R.id.nav_intereesting || id == R.id.nav_myphotos){
+            replaceFragment(id);
+        } else if (id == R.id.nav_settings) {
+
+        } else {
 
         }
+
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
 
-    private void replaceFragment(Integer fragID){
+    private void replaceFragment(int id){
         Fragment fragment = null;
-
         try {
-            fragment = InterestingPhotosFragment.newInstance(this);
+            if (id == R.id.nav_intereesting){
+                fragment = InterestingPhotoFragment.newInstance();
+            } else if (id == R.id.nav_myphotos){
+                
+            } else if (id == R.id.nav_favorites){
+                fragment = FavoritePhotosFragment.newInstance();
+            } else {
+
+            }
         } catch (Exception e) {
-            e.printStackTrace();
+           Toast.makeText(this,R.string.basic_error,Toast.LENGTH_LONG);
         }
 
         FragmentManager fragmentManager = getSupportFragmentManager();

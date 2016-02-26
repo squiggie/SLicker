@@ -1,26 +1,17 @@
-package slicker.com.slicker.Controller;
+package slicker.com.slicker.Controller.API;
 
 /**
  * Created by squiggie on 2/24/16.
  */
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.util.LruCache;
 
-import com.android.volley.NetworkResponse;
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 
 public class Downloader {
     private static Downloader DOWNLOADER;
@@ -51,7 +42,7 @@ public class Downloader {
 //    }
 
     public void download(String url, final StringCallback cb) {
-        queue.add(new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
+        StringRequest req = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 cb.onDownloadReady(response);
@@ -61,7 +52,9 @@ public class Downloader {
             public void onErrorResponse(VolleyError error) {
                 cb.onErrorResponse(error);
             }
-        }));
+        });
+        req.setRetryPolicy(new DefaultRetryPolicy(DefaultRetryPolicy.DEFAULT_TIMEOUT_MS,3,DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        queue.add(req);
     }
 
     /*public Request download(String url, final File out, final DiskCallback cb) {

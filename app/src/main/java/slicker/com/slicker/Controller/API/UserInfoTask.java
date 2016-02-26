@@ -1,4 +1,4 @@
-package slicker.com.slicker.Controller;
+package slicker.com.slicker.Controller.API;
 
 import android.os.AsyncTask;
 
@@ -10,11 +10,13 @@ import com.github.scribejava.core.model.Token;
 import com.github.scribejava.core.model.Verb;
 import com.github.scribejava.core.oauth.OAuth10aService;
 
+import slicker.com.slicker.Controller.MyInterfaces;
+import slicker.com.slicker.Model.MyConstants;
+
 /**
  * Created by squiggie on 2/24/16.
  */
 public class UserInfoTask extends AsyncTask<String, Integer, String> {
-    private static final String PROTECTED_RESOURCE_URL = "https://api.flickr.com/services/rest/";
     private MyInterfaces.OnGetUserInfo mListener;
 
     public UserInfoTask(MyInterfaces.OnGetUserInfo listener){
@@ -30,7 +32,7 @@ public class UserInfoTask extends AsyncTask<String, Integer, String> {
                 .apiKey(params[0])
                 .apiSecret(params[1])
                 .build(FlickrApi.instance());
-        OAuthRequest request = new OAuthRequest(Verb.GET,PROTECTED_RESOURCE_URL,service);
+        OAuthRequest request = new OAuthRequest(Verb.GET, MyConstants.PROTECTED_RESOURCE_URL,service);
         Token accessToken = new Token(params[2],params[3]);
         request.addQuerystringParameter("method","flickr.test.login");
         request.addQuerystringParameter("format","json");

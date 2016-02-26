@@ -1,22 +1,15 @@
-package slicker.com.slicker.Controller;
+package slicker.com.slicker.Controller.API;
 
 /**
  * Created by squiggie on 2/24/16.
  */
 import android.content.Context;
-import android.util.Log;
 
-import com.android.volley.Request;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.ImageLoader;
-import com.android.volley.toolbox.JsonObjectRequest;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -25,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import slicker.com.slicker.Model.Photo;
 import slicker.com.slicker.R;
 
 public class Api {
@@ -113,13 +105,13 @@ public class Api {
         return getUrlForMethod("flickr.people.getinfo") + "&user_id=" + userID;
     }
 
-    private static String getSearchUrl(String text) {
+    /*private static String getSearchUrl(String text) {
         return getUrlForMethod("flickr.photos.search") + "&text=" + text + "&per_page=500";
     }
 
     private static String getPhotoUrl(Photo photo, String sizeKey) {
         return String.format(PHOTO_URL, photo.getFarm(), photo.getSecret(), photo.getId(), photo.getSecret(), sizeKey);
-    }
+    }*/
 
     public void getJSON(String url, final JSONCallback cb){
         downloader.download(url, new Downloader.StringCallback() {
