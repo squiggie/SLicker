@@ -1,20 +1,17 @@
 package slicker.com.slicker.Adapters;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.support.v7.widget.GridLayoutManager;
+import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.Toast;
 
-import com.bumptech.glide.DrawableRequestBuilder;
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.animation.GlideAnimation;
-import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,11 +19,12 @@ import java.util.List;
 import slicker.com.slicker.Model.MyConstants;
 import slicker.com.slicker.Model.Photo;
 import slicker.com.slicker.R;
+import slicker.com.slicker.View.FullscreenActivity;
 
 /**
  * Created by squiggie on 2/25/16.
  */
-public class PhotoAdapter extends RecyclerView.Adapter{
+public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.MyViewHolder>{
     private Context mContext;
     private List<Photo> mPhotos = new ArrayList<>();
 
@@ -35,16 +33,13 @@ public class PhotoAdapter extends RecyclerView.Adapter{
     }
 
     @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View itemView = LayoutInflater.from(mContext).inflate(R.layout.grid_item,null);
-        MyViewHolder holder = new MyViewHolder(itemView);
-        holder.imageView = (ImageView)itemView.findViewById(R.id.gridImageView);
-        itemView.setTag(holder);
-        return holder;
+    public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View itemView = LayoutInflater.from(mContext).inflate(R.layout.grid_item, parent, false);
+        return new MyViewHolder(itemView);
     }
 
     @Override
-    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+    public void onBindViewHolder(MyViewHolder holder, int position) {
         final MyViewHolder vh = (MyViewHolder) holder;
         String farm = String.valueOf(mPhotos.get(position).getFarm());
         String server = String.valueOf(mPhotos.get(position).getServer());
@@ -53,17 +48,18 @@ public class PhotoAdapter extends RecyclerView.Adapter{
         String size = "b";
 
         String url = String.format(MyConstants.IMAGE_URL,farm,server,id,secret,size);
-        Glide
-            .with(mContext)
-            .load(url)
-            .asBitmap()
-            .into(new SimpleTarget<Bitmap>(640, 640) {
-                @Override
-                public void onResourceReady(Bitmap resource, GlideAnimation glideAnimation) {
-                    vh.imageView.setImageBitmap(resource);
-                    Log.d("Download", "Image " + resource.toString() + " downloaded");
-                }
-            });
+        if (mPhotos.get(position) != null) {
+            Glide
+                    .with(mContext)
+                    .load(url)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .placeholder(new ColorDrawable(Color.GRAY))
+                    .crossFade()
+                    .into(vh.imageView);
+        } else {
+            Glide.clear(vh.imageView);
+            vh.imageView.setImageDrawable(null);
+        }
     }
 
 
@@ -81,16 +77,23 @@ public class PhotoAdapter extends RecyclerView.Adapter{
     }
 
     public class MyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        public ImageView imageView;
+        private ImageView imageView;
 
         public MyViewHolder(View itemView) {
             super(itemView);
+            imageView = (ImageView) itemView;
             itemView.setOnClickListener(this);
         }
 
         @Override
         public void onClick(View v) {
-            Toast.makeText(v.getContext(), "Clicked Position = " + getPosition(), Toast.LENGTH_SHORT).show();
+            //Launch full screen image activity
+            Intent intent = new Intent(mContext, FullscreenActivity.class);
+            intent.putExtra("farm",mPhotos.get(getPosition()).getFarm());
+            intent.putExtra("server",mPhotos.get(getPosition()).getServer());
+            intent.putExtra("id",mPhotos.get(getPosition()).getId());
+            intent.putExtra("secret",mPhotos.get(getPosition()).getSecret());
+            mContext.startActivity(intent);
         }
     }
 }

@@ -1,16 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             android:padding="2dp"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent">
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+<slicker.com.slicker.SquareImageView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:scaleType="centerCrop"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/squareImageView"/>
 
-        <ImageView
-            android:id="@+id/gridImageView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="fitXY"/>
-    </RelativeLayout>
-</FrameLayout>
