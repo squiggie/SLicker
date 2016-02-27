@@ -1,11 +1,13 @@
 package slicker.com.slicker.View;
 
+
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -19,45 +21,45 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import slicker.com.slicker.Adapters.PhotoAdapter;
-import slicker.com.slicker.Controller.API.FavoritePhotosAsyncTask;
+import slicker.com.slicker.Controller.API.MyPhotosAsyncTask;
 import slicker.com.slicker.Controller.MyInterfaces;
 import slicker.com.slicker.Controller.RecyclerOnScrollListener;
 import slicker.com.slicker.Model.MyConstants;
 import slicker.com.slicker.Model.Photo;
 import slicker.com.slicker.R;
 
-public class FavoritePhotosFragment extends android.support.v4.app.Fragment implements SwipeRefreshLayout.OnRefreshListener, MyInterfaces.OnGetFavoritePhotos, MyInterfaces.RecyclerViewClickListener{
+public class MyPhotosFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener, MyInterfaces.OnGetMyPhotos, MyInterfaces.RecyclerViewClickListener {
 
-        private PhotoAdapter mAdapter;
-        private RecyclerView mRecyclerView;
-        private SwipeRefreshLayout mSwipeContainer;
-        private int mNumOfPages = 100;
-        private int mCurrentPage = 0;
-        private String mUserID;
-        private String mToken;
-        private String mSecret;
-        private ProgressDialog mProgressDialog;
+    private PhotoAdapter mAdapter;
+    private RecyclerView mRecyclerView;
+    private SwipeRefreshLayout mSwipeContainer;
+    private int mNumOfPages = 100;
+    private int mCurrentPage = 0;
+    private String mUserID;
+    private String mToken;
+    private String mSecret;
+    private ProgressDialog mProgressDialog;
 
-        public FavoritePhotosFragment() {
-        }
+    public MyPhotosFragment() {
+    }
 
-    public static FavoritePhotosFragment newInstance() {
-        FavoritePhotosFragment fragment = new FavoritePhotosFragment();
+    public static MyPhotosFragment newInstance() {
+        MyPhotosFragment fragment = new MyPhotosFragment();
         return fragment;
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView =  inflater.inflate(R.layout.fragment_favorite_photos, container, false);
-        mSwipeContainer = (SwipeRefreshLayout) rootView.findViewById(R.id.swipeFavoriteContainer);
+        View rootView =  inflater.inflate(R.layout.fragment_my_photos, container, false);
+        mSwipeContainer = (SwipeRefreshLayout) rootView.findViewById(R.id.swipeMyPhotosContainer);
         mSwipeContainer.setOnRefreshListener(this);
         mAdapter = new PhotoAdapter(getActivity(),this);
-        mRecyclerView = (RecyclerView) rootView.findViewById(R.id.rvFavorite);
+        mRecyclerView = (RecyclerView) rootView.findViewById(R.id.rvMyPhotos);
         LinearLayoutManager lm = new LinearLayoutManager(getActivity(),LinearLayoutManager.VERTICAL,false);
         mRecyclerView.setLayoutManager(lm);
         mRecyclerView.setAdapter(mAdapter);
         mProgressDialog = new ProgressDialog(getActivity());
-        mProgressDialog.setMessage("Getting Favorites");
+        mProgressDialog.setMessage("Getting My Photos");
         mProgressDialog.dismiss();
 
         mRecyclerView.addOnScrollListener(new RecyclerOnScrollListener(lm) {
@@ -77,26 +79,16 @@ public class FavoritePhotosFragment extends android.support.v4.app.Fragment impl
             mProgressDialog.show();
             getSharedPrefsForAsyncTask();
             String page = String.valueOf(mCurrentPage + 1);
-            FavoritePhotosAsyncTask favoritePhotosAsyncTask = new FavoritePhotosAsyncTask(getActivity(),this, mProgressDialog);
-            favoritePhotosAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,mToken,mSecret,mUserID,page);
+            MyPhotosAsyncTask myPhotosAsyncTask = new MyPhotosAsyncTask(getActivity(),this, mProgressDialog);
+            myPhotosAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,mToken,mSecret,mUserID,page);
         }
     }
 
     private void getSharedPrefsForAsyncTask() {
-        SharedPreferences sp = getActivity().getSharedPreferences(MyConstants.SP_KEY,Context.MODE_PRIVATE);
+        SharedPreferences sp = getActivity().getSharedPreferences(MyConstants.SP_KEY, Context.MODE_PRIVATE);
         mUserID = sp.getString(MyConstants.KEY_USER_ID,null);
         mToken = sp.getString(MyConstants.KEY_OAUTH_TOKEN,null);
         mSecret = sp.getString(MyConstants.KEY_TOKEN_SECRET,null);
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
     }
 
     @Override
@@ -105,7 +97,7 @@ public class FavoritePhotosFragment extends android.support.v4.app.Fragment impl
     }
 
     @Override
-    public void onGetFavoritePhotos(String response) {
+    public void onGetMyPhotos(String response) {
         try {
             JSONObject json = new JSONObject(response);
             JSONObject photos = json.getJSONObject("photos");
@@ -117,7 +109,7 @@ public class FavoritePhotosFragment extends android.support.v4.app.Fragment impl
                 mAdapter.add(photo);
             }
         } catch (JSONException e) {
-            Toast.makeText(getActivity(),R.string.basic_error, Toast.LENGTH_LONG).show();
+            Toast.makeText(getActivity(), R.string.basic_error, Toast.LENGTH_LONG).show();
             mProgressDialog.dismiss();
         }
         mAdapter.notifyDataSetChanged();

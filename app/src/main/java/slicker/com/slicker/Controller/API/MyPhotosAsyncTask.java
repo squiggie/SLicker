@@ -18,15 +18,15 @@ import slicker.com.slicker.Model.MyConstants;
 import slicker.com.slicker.R;
 
 /**
- * Created by squiggie on 2/26/16.
+ * Created by squiggie on 2/27/16.
  */
-public class FavoritePhotosAsyncTask extends AsyncTask<String, String, String>{
+public class MyPhotosAsyncTask extends AsyncTask<String, String, String> {
 
     private Context mContext;
-    private MyInterfaces.OnGetFavoritePhotos mListener;
+    private MyInterfaces.OnGetMyPhotos mListener;
     private ProgressDialog mProgressDialog;
 
-    public FavoritePhotosAsyncTask(Context context, MyInterfaces.OnGetFavoritePhotos listener, ProgressDialog progressDialog) {
+    public MyPhotosAsyncTask(Context context, MyInterfaces.OnGetMyPhotos listener, ProgressDialog progressDialog) {
         mContext = context;
         mListener = listener;
         mProgressDialog = progressDialog;
@@ -46,8 +46,9 @@ public class FavoritePhotosAsyncTask extends AsyncTask<String, String, String>{
                     .build(FlickrApi.instance());
             Token accessToken = new Token(params[0],params[1]);
             OAuthRequest request = new OAuthRequest(Verb.GET, MyConstants.PROTECTED_RESOURCE_URL, service);
-            request.addQuerystringParameter("method",MyConstants.FLICKR_METHOD_FAVORITES);
+            request.addQuerystringParameter("method",MyConstants.FLICKR_METHOD_MYPHOTOS);
             request.addQuerystringParameter("format","json");
+            request.addQuerystringParameter("api_key",MyConstants.API_KEY);
             request.addQuerystringParameter("nojsoncallback","1");
             request.addQuerystringParameter("user_id",params[2]);
             request.addQuerystringParameter("page", params[3]);
@@ -61,10 +62,10 @@ public class FavoritePhotosAsyncTask extends AsyncTask<String, String, String>{
 
     @Override
     protected void onPostExecute(String response){
-        if (response.contains("error")){
+        if (response.contains("error") || response.contains("fail")){
             Toast.makeText(mContext, R.string.basic_error, Toast.LENGTH_LONG).show();
         } else {
-            mListener.onGetFavoritePhotos(response);
+            mListener.onGetMyPhotos(response);
         }
     }
 }

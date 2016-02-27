@@ -31,8 +31,11 @@ public class MyInterfaces {
         void onGetFavoritePhotos(String response);
     }
 
-    public interface RecyclerViewClickListener
-    {
-        public void recyclerViewListClicked(Photo photo);
+    public interface RecyclerViewClickListener {
+        void recyclerViewListClicked(Photo photo);
+    }
+
+    public interface OnGetMyPhotos{
+        void onGetMyPhotos(String response);
     }
 }

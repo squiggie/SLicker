@@ -2,9 +2,8 @@ package slicker.com.slicker.View;
 
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.net.Uri;
+import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -138,21 +137,12 @@ public class InterestingPhotoFragment extends android.support.v4.app.Fragment im
 
     @Override
     public void recyclerViewListClicked(Photo photo) {
-        if (getActivity() instanceof MainActivity){
-            MainActivity main = (MainActivity) getActivity();
-            Fragment fragment = FullscreenActivity.newInstance();
-            Bundle bundle = new Bundle();
-            bundle.putInt("farm",photo.getFarm());
-            bundle.putInt("server",photo.getServer());
-            bundle.putString("id",photo.getId());
-            bundle.putString("secret",photo.getSecret());
-            bundle.putString("owner",photo.getOwner());
-            fragment.setArguments(bundle);
-            main.replaceFragment(fragment);
-        }
-    }
-
-    public interface OnFragmentInteractionListener {
-        void onFragmentInteraction(Uri uri);
+        Intent intent = new Intent(getActivity(),FullScreenActivity.class);
+        intent.putExtra("farm", photo.getFarm());
+        intent.putExtra("server",photo.getServer());
+        intent.putExtra("id", photo.getId());
+        intent.putExtra("secret", photo.getSecret());
+        intent.putExtra("owner", photo.getOwner());
+        startActivity(intent);
     }
 }

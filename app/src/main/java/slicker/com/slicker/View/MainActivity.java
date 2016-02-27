@@ -2,7 +2,6 @@ package slicker.com.slicker.View;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -13,7 +12,6 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -32,13 +30,11 @@ import io.realm.Realm;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
 import slicker.com.slicker.Controller.API.Api;
-import slicker.com.slicker.Controller.MyInterfaces;
 import slicker.com.slicker.Model.MyConstants;
-import slicker.com.slicker.Model.Photo;
 import slicker.com.slicker.Model.User;
 import slicker.com.slicker.R;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, InterestingPhotoFragment.OnFragmentInteractionListener{
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
 
     private SharedPreferences sp;
     private Realm mRealm;
@@ -47,9 +43,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private TextView tvRealName;
     private TextView tvUserName;
     private ImageView ivBuddyIcon;
-    private boolean mFirstRun = true;
-
-    public MyInterfaces.RecyclerViewClickListener mListener;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,23 +52,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         setSupportActionBar(toolbar);
         mRealm = Realm.getInstance(this);
         sp = getSharedPreferences(MyConstants.SP_KEY, MODE_PRIVATE);
-
-        mListener = new MyInterfaces.RecyclerViewClickListener() {
-            @Override
-            public void recyclerViewListClicked(Photo photo) {
-                Bundle bundle = new Bundle();
-                bundle.putInt("farm", photo.getFarm());
-                bundle.putInt("server", photo.getServer());
-                bundle.putString("id", photo.getId());
-                bundle.putString("secret", photo.getSecret());
-                bundle.putString("owner", photo.getOwner());
-
-                Fragment fragment = FullscreenActivity.newInstance();
-                fragment.setArguments(bundle);
-
-                getSupportFragmentManager().beginTransaction().replace(R.id.llContent,fragment).commit();
-            }
-        };
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setVisibility(View.GONE);
@@ -93,10 +69,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         getUserDetails();
 
-        if (mFirstRun){
+        if(null == savedInstanceState){
             Fragment fragment = FavoritePhotosFragment.newInstance();
             replaceFragment(fragment);
-            mFirstRun = false;
         }
     }
 
@@ -184,7 +159,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Fragment fragment = InterestingPhotoFragment.newInstance();
             replaceFragment(fragment);
         } else if (id == R.id.nav_myphotos){
-
+            Fragment fragment = MyPhotosFragment.newInstance();
+            replaceFragment(fragment);
         } else {
 
         }
@@ -220,11 +196,5 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(intent);
     }
-
-    @Override
-    public void onFragmentInteraction(Uri uri) {
-        Log.d("Frag:",uri.toString());
-    }
-
 }
 
