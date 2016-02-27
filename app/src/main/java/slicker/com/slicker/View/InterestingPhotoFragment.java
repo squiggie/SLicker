@@ -2,9 +2,9 @@ package slicker.com.slicker.View;
 
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -22,12 +22,13 @@ import org.json.JSONObject;
 
 import slicker.com.slicker.Adapters.PhotoAdapter;
 import slicker.com.slicker.Controller.API.Api;
+import slicker.com.slicker.Controller.MyInterfaces;
 import slicker.com.slicker.Controller.RecyclerOnScrollListener;
 import slicker.com.slicker.Model.MyConstants;
 import slicker.com.slicker.Model.Photo;
 import slicker.com.slicker.R;
 
-public class InterestingPhotoFragment extends android.support.v4.app.Fragment implements SwipeRefreshLayout.OnRefreshListener{
+public class InterestingPhotoFragment extends android.support.v4.app.Fragment implements SwipeRefreshLayout.OnRefreshListener,MyInterfaces.RecyclerViewClickListener{
 
     private PhotoAdapter mAdapter;
     private RecyclerView mRecyclerView;
@@ -55,7 +56,7 @@ public class InterestingPhotoFragment extends android.support.v4.app.Fragment im
         mSwipeContainer = (SwipeRefreshLayout) rootView.findViewById(R.id.swipeInterestingContainer);
         mSwipeContainer.setOnRefreshListener(this);
         mSwipeContainer.setRefreshing(true);
-        mAdapter = new PhotoAdapter(getActivity());
+        mAdapter = new PhotoAdapter(getActivity(),this);
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.rvInteresting);
         LinearLayoutManager lm = new LinearLayoutManager(getActivity(),LinearLayoutManager.VERTICAL,false);
         mRecyclerView.setLayoutManager(lm);
@@ -133,6 +134,22 @@ public class InterestingPhotoFragment extends android.support.v4.app.Fragment im
         mAdapter.notifyDataSetChanged();
         mSwipeContainer.setRefreshing(true);
         getPhotos();
+    }
+
+    @Override
+    public void recyclerViewListClicked(Photo photo) {
+        if (getActivity() instanceof MainActivity){
+            MainActivity main = (MainActivity) getActivity();
+            Fragment fragment = FullscreenActivity.newInstance();
+            Bundle bundle = new Bundle();
+            bundle.putInt("farm",photo.getFarm());
+            bundle.putInt("server",photo.getServer());
+            bundle.putString("id",photo.getId());
+            bundle.putString("secret",photo.getSecret());
+            bundle.putString("owner",photo.getOwner());
+            fragment.setArguments(bundle);
+            main.replaceFragment(fragment);
+        }
     }
 
     public interface OnFragmentInteractionListener {

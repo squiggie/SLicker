@@ -19,4 +19,8 @@ public class MyConstants {
     public static final String FLICKR_METHOD_INTERESTING = "flickr.interestingness.getList";
     public static final String FLICKR_METHOD_FAVORITES = "flickr.favorites.getList";
     public static final String PROTECTED_RESOURCE_URL = "https://api.flickr.com/services/rest/";
+    public static final String SEARCH_COMPLETED_ACTION = "search_completed";
+    public static final String SIGNED_API_URL = "https://api.flickr.com/services/rest/?method=%s&format=json&nojsoncallback=1&api_key=" + API_KEY;
+    public static final String PHOTO_URL = "http://farm%s.staticflickr.com/%s/%s_%s_%s.jpg";
+
 }

@@ -1,7 +1,6 @@
 package slicker.com.slicker.Adapters;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.support.v7.widget.RecyclerView;
@@ -16,10 +15,10 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import java.util.ArrayList;
 import java.util.List;
 
+import slicker.com.slicker.Controller.MyInterfaces;
 import slicker.com.slicker.Model.MyConstants;
 import slicker.com.slicker.Model.Photo;
 import slicker.com.slicker.R;
-import slicker.com.slicker.View.FullscreenActivity;
 
 /**
  * Created by squiggie on 2/25/16.
@@ -27,9 +26,11 @@ import slicker.com.slicker.View.FullscreenActivity;
 public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.MyViewHolder>{
     private Context mContext;
     private List<Photo> mPhotos = new ArrayList<>();
+    private static MyInterfaces.RecyclerViewClickListener mListener;
 
-    public PhotoAdapter(Context context){
+    public PhotoAdapter(Context context, MyInterfaces.RecyclerViewClickListener listener){
         mContext = context;
+        mListener = listener;
     }
 
     @Override
@@ -45,13 +46,14 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.MyViewHolder
         String server = String.valueOf(mPhotos.get(position).getServer());
         String id = mPhotos.get(position).getId();
         String secret = mPhotos.get(position).getSecret();
-        String size = "b";
+        String size = "n";
 
         String url = String.format(MyConstants.IMAGE_URL,farm,server,id,secret,size);
         if (mPhotos.get(position) != null) {
             Glide
                     .with(mContext)
                     .load(url)
+                    .fitCenter()
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .placeholder(new ColorDrawable(Color.GRAY))
                     .crossFade()
@@ -71,6 +73,10 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.MyViewHolder
         mPhotos.clear();
     }
 
+    public Photo getPhoto(int position){
+        return mPhotos.get(position);
+    }
+
     @Override
     public int getItemCount() {
         return mPhotos.size();
@@ -87,13 +93,7 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.MyViewHolder
 
         @Override
         public void onClick(View v) {
-            //Launch full screen image activity
-            Intent intent = new Intent(mContext, FullscreenActivity.class);
-            intent.putExtra("farm",mPhotos.get(getPosition()).getFarm());
-            intent.putExtra("server",mPhotos.get(getPosition()).getServer());
-            intent.putExtra("id",mPhotos.get(getPosition()).getId());
-            intent.putExtra("secret",mPhotos.get(getPosition()).getSecret());
-            mContext.startActivity(intent);
+            mListener.recyclerViewListClicked(mPhotos.get(getLayoutPosition()));
         }
     }
 }

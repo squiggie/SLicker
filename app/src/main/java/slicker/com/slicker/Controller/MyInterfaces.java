@@ -3,6 +3,8 @@ package slicker.com.slicker.Controller;
 
 import com.github.scribejava.core.model.Token;
 
+import slicker.com.slicker.Model.Photo;
+
 
 /**
  * Created by squiggie on 2/23/16.
@@ -27,5 +29,10 @@ public class MyInterfaces {
 
     public interface OnGetFavoritePhotos{
         void onGetFavoritePhotos(String response);
+    }
+
+    public interface RecyclerViewClickListener
+    {
+        public void recyclerViewListClicked(Photo photo);
     }
 }

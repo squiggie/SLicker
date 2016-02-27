@@ -5,18 +5,18 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.util.Log;
-import android.view.View;
-import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,14 +27,14 @@ import com.bumptech.glide.Glide;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-
 import butterknife.ButterKnife;
 import io.realm.Realm;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
 import slicker.com.slicker.Controller.API.Api;
-import slicker.com.slicker.Controller.API.FavoritePhotosAsyncTask;
+import slicker.com.slicker.Controller.MyInterfaces;
 import slicker.com.slicker.Model.MyConstants;
+import slicker.com.slicker.Model.Photo;
 import slicker.com.slicker.Model.User;
 import slicker.com.slicker.R;
 
@@ -49,7 +49,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private ImageView ivBuddyIcon;
     private boolean mFirstRun = true;
 
-    @Override
+    public MyInterfaces.RecyclerViewClickListener mListener;
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -58,6 +59,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         setSupportActionBar(toolbar);
         mRealm = Realm.getInstance(this);
         sp = getSharedPreferences(MyConstants.SP_KEY, MODE_PRIVATE);
+
+        mListener = new MyInterfaces.RecyclerViewClickListener() {
+            @Override
+            public void recyclerViewListClicked(Photo photo) {
+                Bundle bundle = new Bundle();
+                bundle.putInt("farm", photo.getFarm());
+                bundle.putInt("server", photo.getServer());
+                bundle.putString("id", photo.getId());
+                bundle.putString("secret", photo.getSecret());
+                bundle.putString("owner", photo.getOwner());
+
+                Fragment fragment = FullscreenActivity.newInstance();
+                fragment.setArguments(bundle);
+
+                getSupportFragmentManager().beginTransaction().replace(R.id.llContent,fragment).commit();
+            }
+        };
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setVisibility(View.GONE);
@@ -76,7 +94,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         getUserDetails();
 
         if (mFirstRun){
-            replaceFragment(R.id.nav_favorites);
+            Fragment fragment = FavoritePhotosFragment.newInstance();
+            replaceFragment(fragment);
             mFirstRun = false;
         }
     }
@@ -156,9 +175,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         if (id == R.id.nav_logout){
             logout();
-        } else if (id == R.id.nav_favorites || id == R.id.nav_intereesting || id == R.id.nav_myphotos){
-            replaceFragment(id);
+        } else if (id == R.id.nav_favorites){
+            Fragment fragment = FavoritePhotosFragment.newInstance();
+            replaceFragment(fragment);
         } else if (id == R.id.nav_settings) {
+
+        } else if (id == R.id.nav_intereesting){
+            Fragment fragment = InterestingPhotoFragment.newInstance();
+            replaceFragment(fragment);
+        } else if (id == R.id.nav_myphotos){
 
         } else {
 
@@ -169,22 +194,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return true;
     }
 
-    private void replaceFragment(int id){
-        Fragment fragment = null;
-        try {
-            if (id == R.id.nav_intereesting){
-                fragment = InterestingPhotoFragment.newInstance();
-            } else if (id == R.id.nav_myphotos){
-
-            } else if (id == R.id.nav_favorites){
-                fragment = FavoritePhotosFragment.newInstance();
-            } else {
-
-            }
-        } catch (Exception e) {
-           Toast.makeText(this,R.string.basic_error,Toast.LENGTH_LONG);
-        }
-
+    public void replaceFragment(Fragment fragment){
         FragmentManager fragmentManager = getSupportFragmentManager();
         fragmentManager.beginTransaction().replace(R.id.llContent,fragment).commit();
     }
@@ -215,5 +225,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void onFragmentInteraction(Uri uri) {
         Log.d("Frag:",uri.toString());
     }
+
 }
 

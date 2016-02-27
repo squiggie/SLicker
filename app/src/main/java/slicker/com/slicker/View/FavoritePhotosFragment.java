@@ -3,26 +3,22 @@ package slicker.com.slicker.View;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ProgressBar;
 import android.widget.Toast;
-
-import com.android.volley.VolleyError;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import slicker.com.slicker.Adapters.PhotoAdapter;
-import slicker.com.slicker.Controller.API.Api;
 import slicker.com.slicker.Controller.API.FavoritePhotosAsyncTask;
 import slicker.com.slicker.Controller.MyInterfaces;
 import slicker.com.slicker.Controller.RecyclerOnScrollListener;
@@ -30,7 +26,7 @@ import slicker.com.slicker.Model.MyConstants;
 import slicker.com.slicker.Model.Photo;
 import slicker.com.slicker.R;
 
-public class FavoritePhotosFragment extends android.support.v4.app.Fragment implements SwipeRefreshLayout.OnRefreshListener, MyInterfaces.OnGetFavoritePhotos{
+public class FavoritePhotosFragment extends android.support.v4.app.Fragment implements SwipeRefreshLayout.OnRefreshListener, MyInterfaces.OnGetFavoritePhotos, MyInterfaces.RecyclerViewClickListener{
 
     private PhotoAdapter mAdapter;
     private RecyclerView mRecyclerView;
@@ -44,6 +40,7 @@ public class FavoritePhotosFragment extends android.support.v4.app.Fragment impl
 
     public FavoritePhotosFragment() {
     }
+
     public static FavoritePhotosFragment newInstance() {
         FavoritePhotosFragment fragment = new FavoritePhotosFragment();
         return fragment;
@@ -61,7 +58,7 @@ public class FavoritePhotosFragment extends android.support.v4.app.Fragment impl
         mSwipeContainer = (SwipeRefreshLayout) rootView.findViewById(R.id.swipeFavoriteContainer);
         mSwipeContainer.setOnRefreshListener(this);
         mSwipeContainer.setRefreshing(true);
-        mAdapter = new PhotoAdapter(getActivity());
+        mAdapter = new PhotoAdapter(getActivity(),this);
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.rvFavorite);
         LinearLayoutManager lm = new LinearLayoutManager(getActivity(),LinearLayoutManager.VERTICAL,false);
         mRecyclerView.setLayoutManager(lm);
@@ -128,6 +125,7 @@ public class FavoritePhotosFragment extends android.support.v4.app.Fragment impl
             }
         } catch (JSONException e) {
             Toast.makeText(getActivity(),R.string.basic_error, Toast.LENGTH_LONG).show();
+            mProgressDialog.dismiss();
         }
         mAdapter.notifyDataSetChanged();
         mSwipeContainer.setRefreshing(false);
@@ -136,8 +134,19 @@ public class FavoritePhotosFragment extends android.support.v4.app.Fragment impl
         }
     }
 
-
-    public interface OnFragmentInteractionListener {
-        void onFragmentInteraction(Uri uri);
+    @Override
+    public void recyclerViewListClicked(Photo photo) {
+        if (getActivity() instanceof MainActivity){
+            MainActivity main = (MainActivity) getActivity();
+            Fragment fragment = FullscreenActivity.newInstance();
+            Bundle bundle = new Bundle();
+            bundle.putInt("farm",photo.getFarm());
+            bundle.putInt("server",photo.getServer());
+            bundle.putString("id",photo.getId());
+            bundle.putString("secret",photo.getSecret());
+            bundle.putString("owner",photo.getOwner());
+            fragment.setArguments(bundle);
+            main.replaceFragment(fragment);
+        }
     }
 }
