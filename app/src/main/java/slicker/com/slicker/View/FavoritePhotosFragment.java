@@ -18,12 +18,15 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+
 import slicker.com.slicker.Adapters.PhotoAdapter;
 import slicker.com.slicker.Controller.API.FavoritePhotosAsyncTask;
 import slicker.com.slicker.Controller.MyInterfaces;
 import slicker.com.slicker.Controller.RecyclerOnScrollListener;
 import slicker.com.slicker.Model.MyConstants;
 import slicker.com.slicker.Model.Photo;
+import slicker.com.slicker.Model.User;
 import slicker.com.slicker.R;
 
 public class FavoritePhotosFragment extends android.support.v4.app.Fragment implements SwipeRefreshLayout.OnRefreshListener, MyInterfaces.OnGetFavoritePhotos, MyInterfaces.RecyclerViewClickListener{
@@ -106,6 +109,8 @@ public class FavoritePhotosFragment extends android.support.v4.app.Fragment impl
 
     @Override
     public void onGetFavoritePhotos(String response) {
+        final ArrayList<Photo> allPhotos = new ArrayList<>();
+        final ArrayList<User> allUsers = new ArrayList<>();
         try {
             JSONObject json = new JSONObject(response);
             JSONObject photos = json.getJSONObject("photos");
@@ -114,6 +119,7 @@ public class FavoritePhotosFragment extends android.support.v4.app.Fragment impl
             JSONArray items = photos.getJSONArray("photo");
             for (int i = 0; i < items.length(); i++){
                 Photo photo = new Photo(items.getJSONObject(i));
+                allPhotos.add(photo);
                 mAdapter.add(photo);
             }
         } catch (JSONException e) {

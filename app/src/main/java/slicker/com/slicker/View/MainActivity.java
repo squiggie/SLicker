@@ -121,7 +121,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private void displayUserInfo() {
         tvRealName.setText(mUser.getRealName());
         tvUserName.setText(mUser.getUsername());
-        String buddyIconPath = String.format(MyConstants.BUDDY_ICON_URI, mUser.getIconFarm(), mUser.getIconServer(), mUser.getId());
+        String buddyIconPath = String.format(MyConstants.BUDDY_ICON_URL, mUser.getIconFarm(), mUser.getIconServer(), mUser.getId());
         Glide.with(this).load(buddyIconPath).asBitmap().into(ivBuddyIcon);
     }
 
