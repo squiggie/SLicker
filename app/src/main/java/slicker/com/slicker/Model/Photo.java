@@ -3,17 +3,23 @@ package slicker.com.slicker.Model;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-/**
- * Created by squiggie on 2/24/16.
- */
-public class Photo {
+import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
+import io.realm.annotations.RealmClass;
 
+@RealmClass
+public class Photo extends RealmObject{
+
+    @PrimaryKey
     private String id;
+
     private String owner;
     private String title;
     private int server;
     private int farm;
     private String secret;
+    private Boolean isFavorite;
+
 
     public Photo(){
     }
@@ -25,6 +31,7 @@ public class Photo {
         this.server = jsonPhoto.getInt("server");
         this.farm = jsonPhoto.getInt("farm");
         this.secret = jsonPhoto.getString("secret");
+        this.isFavorite = false;
     }
 
     public String getId() {
@@ -74,4 +81,13 @@ public class Photo {
     public void setSecret(String secret) {
         this.secret = secret;
     }
+
+    public Boolean getIsFavorite() {
+        return isFavorite;
+    }
+
+    public void setIsFavorite(Boolean isFavorite) {
+        this.isFavorite = isFavorite;
+    }
 }
+

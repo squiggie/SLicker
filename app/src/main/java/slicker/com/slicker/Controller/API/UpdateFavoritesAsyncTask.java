@@ -1,10 +1,10 @@
 package slicker.com.slicker.Controller.API;
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.widget.Toast;
 
+import com.github.jorgecastilloprz.FABProgressCircle;
 import com.github.scribejava.apis.FlickrApi;
 import com.github.scribejava.core.builder.ServiceBuilder;
 import com.github.scribejava.core.model.OAuthRequest;
@@ -17,16 +17,16 @@ import slicker.com.slicker.Controller.MyInterfaces;
 import slicker.com.slicker.Model.MyConstants;
 import slicker.com.slicker.R;
 
-public class MyPhotosAsyncTask extends AsyncTask<String, String, String> {
+public class UpdateFavoritesAsyncTask extends AsyncTask<String, String, String> {
 
     private Context mContext;
-    private MyInterfaces.OnGetMyPhotos mListener;
-    private ProgressDialog mProgressDialog;
+    private MyInterfaces.OnUpdateFavorite mListener;
+    private FABProgressCircle mFABProgress;
 
-    public MyPhotosAsyncTask(Context context, MyInterfaces.OnGetMyPhotos listener, ProgressDialog progressDialog) {
+    public UpdateFavoritesAsyncTask(Context context, MyInterfaces.OnUpdateFavorite listener, FABProgressCircle fabprogress) {
         mContext = context;
         mListener = listener;
-        mProgressDialog = progressDialog;
+        mFABProgress = fabprogress;
     }
 
     @Override
@@ -43,12 +43,15 @@ public class MyPhotosAsyncTask extends AsyncTask<String, String, String> {
                     .build(FlickrApi.instance());
             Token accessToken = new Token(params[0],params[1]);
             OAuthRequest request = new OAuthRequest(Verb.GET, MyConstants.PROTECTED_RESOURCE_URL, service);
-            request.addQuerystringParameter("method",MyConstants.FLICKR_METHOD_MYPHOTOS);
+            if (params[2].contains("add")){
+                request.addQuerystringParameter("method",MyConstants.FLICKR_METHOD_ADDFAVORITE);
+            } else if (params[2].contains("remove")){
+                request.addQuerystringParameter("method",MyConstants.FLICKR_METHOD_REMOVEFAVORITE);
+            }
             request.addQuerystringParameter("format","json");
             request.addQuerystringParameter("api_key",MyConstants.API_KEY);
             request.addQuerystringParameter("nojsoncallback","1");
-            request.addQuerystringParameter("user_id",params[2]);
-            request.addQuerystringParameter("page", params[3]);
+            request.addQuerystringParameter("photo_id",params[3]);
             service.signRequest(accessToken, request);
             Response response = request.send();
             return response.getBody();
@@ -59,14 +62,14 @@ public class MyPhotosAsyncTask extends AsyncTask<String, String, String> {
 
     @Override
     protected void onPostExecute(String response){
-        if (mProgressDialog != null && mProgressDialog.isShowing()){
-            mProgressDialog.dismiss();
-        }
-
-        if (response.contains("error") || response.contains("fail")){
+        mFABProgress.hide();
+        if (response.contains("Photo is owned by you")){
+            Toast.makeText(mContext, "Can't favorite you're own photo.", Toast.LENGTH_LONG).show();
+        } else if (response.contains("error") || response.contains("fail")){
             Toast.makeText(mContext, R.string.basic_error, Toast.LENGTH_LONG).show();
         } else {
-            mListener.onGetMyPhotos(response);
+          mListener.onUpdateFavorite(response);
         }
+
     }
 }

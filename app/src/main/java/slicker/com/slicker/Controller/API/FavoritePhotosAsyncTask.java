@@ -17,9 +17,6 @@ import slicker.com.slicker.Controller.MyInterfaces;
 import slicker.com.slicker.Model.MyConstants;
 import slicker.com.slicker.R;
 
-/**
- * Created by squiggie on 2/26/16.
- */
 public class FavoritePhotosAsyncTask extends AsyncTask<String, String, String>{
 
     private Context mContext;
@@ -61,6 +58,11 @@ public class FavoritePhotosAsyncTask extends AsyncTask<String, String, String>{
 
     @Override
     protected void onPostExecute(String response){
+
+        if (mProgressDialog != null && mProgressDialog.isShowing()){
+            mProgressDialog.dismiss();
+        }
+
         if (response.contains("error")){
             Toast.makeText(mContext, R.string.basic_error, Toast.LENGTH_LONG).show();
         } else {

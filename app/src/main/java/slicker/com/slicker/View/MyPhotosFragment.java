@@ -93,7 +93,20 @@ public class MyPhotosFragment extends Fragment implements SwipeRefreshLayout.OnR
 
     @Override
     public void onRefresh() {
+        mCurrentPage = 0;
+        mNumOfPages = 100;
+        mAdapter.clear();
+        mAdapter.notifyDataSetChanged();
+        mSwipeContainer.setRefreshing(true);
+        getPhotos();
+    }
 
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mProgressDialog != null && mProgressDialog.isShowing()){
+            mProgressDialog.dismiss();
+        }
     }
 
     @Override
@@ -120,22 +133,23 @@ public class MyPhotosFragment extends Fragment implements SwipeRefreshLayout.OnR
     }
 
     @Override
-    public void recyclerViewListClicked(Photo photo, View v) {
+    public void recyclerViewMainImageClicked(Photo photo, View v) {
+        Intent intent = new Intent(getActivity(),FullScreenActivity.class);
+        intent.putExtra("farm", photo.getFarm());
+        intent.putExtra("server",photo.getServer());
+        intent.putExtra("id", photo.getId());
+        intent.putExtra("secret", photo.getSecret());
+        intent.putExtra("owner", photo.getOwner());
+        startActivity(intent);
+    }
 
-        switch(v.getId()){
-            case R.id.buddyIconCard:
-                break;
-            case R.id.imageViewSquare:
-                Intent intent = new Intent(getActivity(),FullScreenActivity.class);
-                intent.putExtra("farm", photo.getFarm());
-                intent.putExtra("server",photo.getServer());
-                intent.putExtra("id", photo.getId());
-                intent.putExtra("secret", photo.getSecret());
-                intent.putExtra("owner", photo.getOwner());
-                startActivity(intent);
-                break;
-            case R.id.imageViewFavorite:
-                break;
-        }
+    @Override
+    public void recyclerViewBuddyImageClicked(Photo photo, View v) {
+
+    }
+
+    @Override
+    public void recyclerViewFavoriteImageClicked(Photo photo, View v, int position) {
+
     }
 }

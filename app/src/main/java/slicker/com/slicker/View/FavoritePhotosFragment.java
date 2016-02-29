@@ -19,14 +19,15 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.List;
 
+import io.realm.Realm;
 import slicker.com.slicker.Adapters.PhotoAdapter;
 import slicker.com.slicker.Controller.API.FavoritePhotosAsyncTask;
 import slicker.com.slicker.Controller.MyInterfaces;
 import slicker.com.slicker.Controller.RecyclerOnScrollListener;
 import slicker.com.slicker.Model.MyConstants;
 import slicker.com.slicker.Model.Photo;
-import slicker.com.slicker.Model.User;
 import slicker.com.slicker.R;
 
 public class FavoritePhotosFragment extends android.support.v4.app.Fragment implements SwipeRefreshLayout.OnRefreshListener, MyInterfaces.OnGetFavoritePhotos, MyInterfaces.RecyclerViewClickListener{
@@ -103,14 +104,26 @@ public class FavoritePhotosFragment extends android.support.v4.app.Fragment impl
     }
 
     @Override
-    public void onRefresh() {
+    public void onPause() {
+        super.onPause();
+        if (mProgressDialog != null && mProgressDialog.isShowing()){
+            mProgressDialog.dismiss();
+        }
+    }
 
+    @Override
+    public void onRefresh() {
+        mCurrentPage = 0;
+        mNumOfPages = 100;
+        mAdapter.clear();
+        mAdapter.notifyDataSetChanged();
+        mSwipeContainer.setRefreshing(true);
+        getPhotos();
     }
 
     @Override
     public void onGetFavoritePhotos(String response) {
-        final ArrayList<Photo> allPhotos = new ArrayList<>();
-        final ArrayList<User> allUsers = new ArrayList<>();
+        ArrayList<Photo> allPhotos = new ArrayList<>();
         try {
             JSONObject json = new JSONObject(response);
             JSONObject photos = json.getJSONObject("photos");
@@ -119,6 +132,7 @@ public class FavoritePhotosFragment extends android.support.v4.app.Fragment impl
             JSONArray items = photos.getJSONArray("photo");
             for (int i = 0; i < items.length(); i++){
                 Photo photo = new Photo(items.getJSONObject(i));
+                photo.setIsFavorite(true);
                 allPhotos.add(photo);
                 mAdapter.add(photo);
             }
@@ -126,6 +140,7 @@ public class FavoritePhotosFragment extends android.support.v4.app.Fragment impl
             Toast.makeText(getActivity(),R.string.basic_error, Toast.LENGTH_LONG).show();
             mProgressDialog.dismiss();
         }
+        saveFavoritesToRealm(allPhotos);
         mAdapter.notifyDataSetChanged();
         mSwipeContainer.setRefreshing(false);
         if(mProgressDialog.isShowing()){
@@ -133,23 +148,35 @@ public class FavoritePhotosFragment extends android.support.v4.app.Fragment impl
         }
     }
 
-    @Override
-    public void recyclerViewListClicked(Photo photo, View v) {
 
-        switch(v.getId()){
-            case R.id.buddyIconCard:
-                break;
-            case R.id.imageViewSquare:
-                Intent intent = new Intent(getActivity(),FullScreenActivity.class);
-                intent.putExtra("farm", photo.getFarm());
-                intent.putExtra("server",photo.getServer());
-                intent.putExtra("id", photo.getId());
-                intent.putExtra("secret", photo.getSecret());
-                intent.putExtra("owner", photo.getOwner());
-                startActivity(intent);
-                break;
-            case R.id.imageViewFavorite:
-                break;
+
+    @Override
+    public void recyclerViewMainImageClicked(Photo photo, View v) {
+        Intent intent = new Intent(getActivity(),FullScreenActivity.class);
+        intent.putExtra("farm", photo.getFarm());
+        intent.putExtra("server",photo.getServer());
+        intent.putExtra("id", photo.getId());
+        intent.putExtra("secret", photo.getSecret());
+        intent.putExtra("owner", photo.getOwner());
+        startActivity(intent);
+    }
+
+    @Override
+    public void recyclerViewBuddyImageClicked(Photo photo, View v) {
+
+    }
+
+    @Override
+    public void recyclerViewFavoriteImageClicked(Photo photo, View v, int position) {
+
+    }
+
+    private void saveFavoritesToRealm(ArrayList<Photo> photos){
+        if (getActivity() != null){
+            Realm realm = Realm.getInstance(getActivity());
+            realm.beginTransaction();
+            List<Photo> realmPhotos  = realm.copyToRealmOrUpdate(photos);
+            realm.commitTransaction();
         }
     }
 }

@@ -7,10 +7,6 @@ import com.github.scribejava.core.model.Token;
 
 import slicker.com.slicker.Model.Photo;
 
-
-/**
- * Created by squiggie on 2/23/16.
- */
 public class MyInterfaces {
 
     public interface OnAccessTokenTaskCompleted{
@@ -33,8 +29,14 @@ public class MyInterfaces {
         void onGetFavoritePhotos(String response);
     }
 
+    public interface OnUpdateFavorite{
+        void onUpdateFavorite(String response);
+    }
+
     public interface RecyclerViewClickListener {
-        void recyclerViewListClicked(Photo photo, View v);
+        void recyclerViewMainImageClicked(Photo photo, View v);
+        void recyclerViewBuddyImageClicked(Photo photo, View v);
+        void recyclerViewFavoriteImageClicked(Photo photo, View v, int position);
     }
 
     public interface OnGetMyPhotos{

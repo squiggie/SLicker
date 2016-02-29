@@ -1,11 +1,64 @@
-<RelativeLayout
+<android.support.design.widget.CoordinatorLayout
+    xmlns:tools="http://schemas.android.com/tools"
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/coordinatorLayoutFull"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    >
-<ImageView
-    android:id="@+id/imageFullScreen"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/black"/>
-</RelativeLayout>
+    android:layout_height="match_parent">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+    <ImageView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/imageViewFull"
+        android:scaleType="centerCrop"/>
+    </RelativeLayout>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="8dp">
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:id="@+id/buddyIconCard"
+            app:civ_border_width="2dp"
+            app:civ_border_color="#FF000000"
+            android:padding="8dp"
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/tvUserNameCard"
+            android:layout_toRightOf="@+id/buddyIconCard"
+            android:layout_alignTop="@id/buddyIconCard"
+            android:paddingLeft="8dp"
+            android:textColor="@color/colorPrimaryLight"
+            tools:text="Landen Melton"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/tvTitle"
+            android:layout_below="@+id/tvUserNameCard"
+            android:layout_alignLeft="@+id/tvUserNameCard"
+            android:layout_toRightOf="@+id/buddyIcon"
+            android:paddingLeft="8dp"
+            android:textColor="@color/colorPrimaryLight"
+            tools:text="This is a generic title"/>
+
+    </RelativeLayout>
+    <com.github.jorgecastilloprz.FABProgressCircle
+        android:id="@+id/fabProgressCircle"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_gravity="bottom|end">
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fabFavorite"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="@dimen/fab_margin"
+            tools:src="@drawable/ic_star_outline"/>
+        </com.github.jorgecastilloprz.FABProgressCircle>
+</android.support.design.widget.CoordinatorLayout>

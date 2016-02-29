@@ -1,8 +1,5 @@
 package slicker.com.slicker.Model;
 
-/**
- * Created by squiggie on 2/25/16.
- */
 public class MyConstants {
 
     public static final String KEY_OAUTH_TOKEN = "oauthToken";
@@ -19,6 +16,8 @@ public class MyConstants {
     public static final String FLICKR_METHOD_INTERESTING = "flickr.interestingness.getList";
     public static final String FLICKR_METHOD_FAVORITES = "flickr.favorites.getList";
     public static final String FLICKR_METHOD_MYPHOTOS = "flickr.people.getPhotos";
+    public static final String FLICKR_METHOD_ADDFAVORITE = "flickr.favorites.add";
+    public static final String FLICKR_METHOD_REMOVEFAVORITE = "flickr.favorites.remove";
     public static final String FLICKR_METHOD_PEOPLE_GETINFO = "flickr.people.getInfo";
     public static final String PROTECTED_RESOURCE_URL = "https://api.flickr.com/services/rest/";
     public static final String SIGNED_API_URL = "https://api.flickr.com/services/rest/?method=%s&format=json&nojsoncallback=1&api_key=" + API_KEY;
