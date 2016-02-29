@@ -80,8 +80,8 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.MyViewHolder
 
             }
         });
-        String url = String.format(MyConstants.IMAGE_URL,farm,server,id,secret,size);
-        Glide.with(mContext).load(url).fitCenter().diskCacheStrategy(DiskCacheStrategy.ALL).placeholder(new ColorDrawable(Color.GRAY)).crossFade().into(holder.imageView);
+        String url = String.format(MyConstants.IMAGE_URL, farm, server, id, secret, size);
+        Glide.with(mContext).load(url).fitCenter().diskCacheStrategy(DiskCacheStrategy.ALL).placeholder(new ColorDrawable(Color.GRAY)).crossFade().into(holder.imageViewSquare);
         holder.tvTitle.setText(mPhotos.get(position).getTitle());
     }
 
@@ -104,26 +104,30 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.MyViewHolder
     }
 
     public class MyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        private ImageView imageView;
+        private ImageView imageViewSquare;
         private CircleImageView buddyIcon;
         private TextView tvUserNameCard;
         private TextView tvTitle;
+        private ImageView imageViewFavorite;
 
 
         public MyViewHolder(View itemView) {
             super(itemView);
-            imageView = (ImageView) itemView.findViewById(R.id.imageViewLarge);
+            imageViewSquare = (ImageView) itemView.findViewById(R.id.imageViewSquare);
             buddyIcon = (CircleImageView) itemView.findViewById(R.id.buddyIconCard);
             tvUserNameCard = (TextView) itemView.findViewById(R.id.tvUserNameCard);
             tvTitle = (TextView) itemView.findViewById(R.id.tvTitle);
+            imageViewFavorite = (ImageView) itemView.findViewById(R.id.imageViewFavorite);
 
-
+            imageViewSquare.setOnClickListener(this);
+            buddyIcon.setOnClickListener(this);
+            imageViewFavorite.setOnClickListener(this);
             itemView.setOnClickListener(this);
         }
 
         @Override
         public void onClick(View v) {
-            mListener.recyclerViewListClicked(mPhotos.get(getLayoutPosition()));
+            mListener.recyclerViewListClicked(mPhotos.get(getLayoutPosition()), v);
         }
     }
 }

@@ -1,6 +1,8 @@
 package slicker.com.slicker.Controller;
 
 
+import android.view.View;
+
 import com.github.scribejava.core.model.Token;
 
 import slicker.com.slicker.Model.Photo;
@@ -32,7 +34,7 @@ public class MyInterfaces {
     }
 
     public interface RecyclerViewClickListener {
-        void recyclerViewListClicked(Photo photo);
+        void recyclerViewListClicked(Photo photo, View v);
     }
 
     public interface OnGetMyPhotos{

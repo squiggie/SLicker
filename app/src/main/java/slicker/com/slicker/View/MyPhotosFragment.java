@@ -80,7 +80,7 @@ public class MyPhotosFragment extends Fragment implements SwipeRefreshLayout.OnR
             getSharedPrefsForAsyncTask();
             String page = String.valueOf(mCurrentPage + 1);
             MyPhotosAsyncTask myPhotosAsyncTask = new MyPhotosAsyncTask(getActivity(),this, mProgressDialog);
-            myPhotosAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,mToken,mSecret,mUserID,page);
+            myPhotosAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mToken, mSecret, mUserID, page);
         }
     }
 
@@ -120,13 +120,22 @@ public class MyPhotosFragment extends Fragment implements SwipeRefreshLayout.OnR
     }
 
     @Override
-    public void recyclerViewListClicked(Photo photo) {
-        Intent intent = new Intent(getActivity(),FullScreenActivity.class);
-        intent.putExtra("farm", photo.getFarm());
-        intent.putExtra("server",photo.getServer());
-        intent.putExtra("id", photo.getId());
-        intent.putExtra("secret", photo.getSecret());
-        intent.putExtra("owner", photo.getOwner());
-        startActivity(intent);
+    public void recyclerViewListClicked(Photo photo, View v) {
+
+        switch(v.getId()){
+            case R.id.buddyIconCard:
+                break;
+            case R.id.imageViewSquare:
+                Intent intent = new Intent(getActivity(),FullScreenActivity.class);
+                intent.putExtra("farm", photo.getFarm());
+                intent.putExtra("server",photo.getServer());
+                intent.putExtra("id", photo.getId());
+                intent.putExtra("secret", photo.getSecret());
+                intent.putExtra("owner", photo.getOwner());
+                startActivity(intent);
+                break;
+            case R.id.imageViewFavorite:
+                break;
+        }
     }
 }

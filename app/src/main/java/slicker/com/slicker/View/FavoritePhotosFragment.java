@@ -134,13 +134,22 @@ public class FavoritePhotosFragment extends android.support.v4.app.Fragment impl
     }
 
     @Override
-    public void recyclerViewListClicked(Photo photo) {
-        Intent intent = new Intent(getActivity(),FullScreenActivity.class);
-        intent.putExtra("farm", photo.getFarm());
-        intent.putExtra("server",photo.getServer());
-        intent.putExtra("id", photo.getId());
-        intent.putExtra("secret", photo.getSecret());
-        intent.putExtra("owner", photo.getOwner());
-        startActivity(intent);
+    public void recyclerViewListClicked(Photo photo, View v) {
+
+        switch(v.getId()){
+            case R.id.buddyIconCard:
+                break;
+            case R.id.imageViewSquare:
+                Intent intent = new Intent(getActivity(),FullScreenActivity.class);
+                intent.putExtra("farm", photo.getFarm());
+                intent.putExtra("server",photo.getServer());
+                intent.putExtra("id", photo.getId());
+                intent.putExtra("secret", photo.getSecret());
+                intent.putExtra("owner", photo.getOwner());
+                startActivity(intent);
+                break;
+            case R.id.imageViewFavorite:
+                break;
+        }
     }
 }
