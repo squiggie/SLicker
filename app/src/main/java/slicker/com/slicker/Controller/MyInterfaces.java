@@ -31,10 +31,8 @@ public class MyInterfaces {
         void onGetFavoritePhotos(String response);
     }
 
-    public interface OnRecyclerViewClickListener {
-        void onCircleImageClick(Photo photo);
-        void onMainImageClick(Photo photo);
-        void onFavoriteClick(Photo photo);
+    public interface RecyclerViewClickListener {
+        void recyclerViewListClicked(Photo photo);
     }
 
     public interface OnGetMyPhotos{

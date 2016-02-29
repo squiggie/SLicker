@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,7 +29,7 @@ import slicker.com.slicker.Model.Photo;
 import slicker.com.slicker.Model.User;
 import slicker.com.slicker.R;
 
-public class FavoritePhotosFragment extends android.support.v4.app.Fragment implements SwipeRefreshLayout.OnRefreshListener, MyInterfaces.OnGetFavoritePhotos, MyInterfaces.OnRecyclerViewClickListener{
+public class FavoritePhotosFragment extends android.support.v4.app.Fragment implements SwipeRefreshLayout.OnRefreshListener, MyInterfaces.OnGetFavoritePhotos, MyInterfaces.RecyclerViewClickListener{
 
         private PhotoAdapter mAdapter;
         private RecyclerView mRecyclerView;
@@ -46,7 +45,8 @@ public class FavoritePhotosFragment extends android.support.v4.app.Fragment impl
         }
 
     public static FavoritePhotosFragment newInstance() {
-        return new FavoritePhotosFragment();
+        FavoritePhotosFragment fragment = new FavoritePhotosFragment();
+        return fragment;
     }
 
     @Override
@@ -134,12 +134,7 @@ public class FavoritePhotosFragment extends android.support.v4.app.Fragment impl
     }
 
     @Override
-    public void onCircleImageClick(Photo photo) {
-        Log.d("Click", "Buddy Icon Clicked");
-    }
-
-    @Override
-    public void onMainImageClick(Photo photo) {
+    public void recyclerViewListClicked(Photo photo) {
         Intent intent = new Intent(getActivity(),FullScreenActivity.class);
         intent.putExtra("farm", photo.getFarm());
         intent.putExtra("server",photo.getServer());
@@ -147,14 +142,5 @@ public class FavoritePhotosFragment extends android.support.v4.app.Fragment impl
         intent.putExtra("secret", photo.getSecret());
         intent.putExtra("owner", photo.getOwner());
         startActivity(intent);
-    }
-
-    @Override
-    public void onFavoriteClick(Photo photo) {
-        toggleFavorite(photo);
-    }
-
-    private void toggleFavorite(Photo photo){
-
     }
 }
