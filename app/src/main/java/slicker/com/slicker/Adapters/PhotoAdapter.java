@@ -33,16 +33,16 @@ import slicker.com.slicker.R;
  */
 public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.MyViewHolder>{
     private Context mContext;
-    private List<Photo> mPhotos = new ArrayList<>();
-    private static MyInterfaces.RecyclerViewClickListener mListener;
+    private static List<Photo> mPhotos = new ArrayList<>();
+    private static MyInterfaces.OnRecyclerViewClickListener mListener;
 
-    public PhotoAdapter(Context context, MyInterfaces.RecyclerViewClickListener listener){
+    public PhotoAdapter(Context context, MyInterfaces.OnRecyclerViewClickListener listener){
         mContext = context;
         mListener = listener;
     }
 
     @Override
-    public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public MyViewHolder onCreateViewHolder(ViewGroup parent, final int viewType) {
         View itemView = LayoutInflater.from(mContext).inflate(R.layout.grid_item, parent, false);
         return new MyViewHolder(itemView);
     }
@@ -81,7 +81,7 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.MyViewHolder
             }
         });
         String url = String.format(MyConstants.IMAGE_URL,farm,server,id,secret,size);
-        Glide.with(mContext).load(url).fitCenter().diskCacheStrategy(DiskCacheStrategy.ALL).placeholder(new ColorDrawable(Color.GRAY)).crossFade().into(holder.imageView);
+        Glide.with(mContext).load(url).fitCenter().diskCacheStrategy(DiskCacheStrategy.ALL).placeholder(new ColorDrawable(Color.GRAY)).crossFade().into(holder.imageViewSquare);
         holder.tvTitle.setText(mPhotos.get(position).getTitle());
     }
 
@@ -103,27 +103,38 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.MyViewHolder
         return mPhotos.size();
     }
 
-    public class MyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        private ImageView imageView;
+    public static class MyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+        private ImageView imageViewSquare;
         private CircleImageView buddyIcon;
         private TextView tvUserNameCard;
         private TextView tvTitle;
-
+        private ImageView imageFavorite;
 
         public MyViewHolder(View itemView) {
             super(itemView);
-            imageView = (ImageView) itemView.findViewById(R.id.imageViewLarge);
+            imageViewSquare = (ImageView) itemView.findViewById(R.id.imageViewSquare);
             buddyIcon = (CircleImageView) itemView.findViewById(R.id.buddyIconCard);
             tvUserNameCard = (TextView) itemView.findViewById(R.id.tvUserNameCard);
             tvTitle = (TextView) itemView.findViewById(R.id.tvTitle);
+            imageFavorite = (ImageView) itemView.findViewById(R.id.imageFavoriteCard);
 
-
+            buddyIcon.setOnClickListener(this);
+            imageViewSquare.setOnClickListener(this);
+            imageFavorite.setOnClickListener(this);
             itemView.setOnClickListener(this);
         }
 
         @Override
         public void onClick(View v) {
-            mListener.recyclerViewListClicked(mPhotos.get(getLayoutPosition()));
+            if (v.getId() == R.id.imageFavoriteCard){
+                mListener.onFavoriteClick(mPhotos.get(getLayoutPosition()));
+            } else if (v.getId() == R.id.imageViewSquare){
+                mListener.onMainImageClick(mPhotos.get(getLayoutPosition()));
+            } else if (v.getId() == R.id.buddyIconCard) {
+                mListener.onCircleImageClick(mPhotos.get(getLayoutPosition()));
+            } else {
+
+            }
         }
     }
 }

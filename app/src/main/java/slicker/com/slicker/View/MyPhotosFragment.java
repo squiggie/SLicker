@@ -28,7 +28,7 @@ import slicker.com.slicker.Model.MyConstants;
 import slicker.com.slicker.Model.Photo;
 import slicker.com.slicker.R;
 
-public class MyPhotosFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener, MyInterfaces.OnGetMyPhotos, MyInterfaces.RecyclerViewClickListener {
+public class MyPhotosFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener, MyInterfaces.OnGetMyPhotos, MyInterfaces.OnRecyclerViewClickListener {
 
     private PhotoAdapter mAdapter;
     private RecyclerView mRecyclerView;
@@ -44,8 +44,7 @@ public class MyPhotosFragment extends Fragment implements SwipeRefreshLayout.OnR
     }
 
     public static MyPhotosFragment newInstance() {
-        MyPhotosFragment fragment = new MyPhotosFragment();
-        return fragment;
+        return new MyPhotosFragment();
     }
 
     @Override
@@ -120,7 +119,12 @@ public class MyPhotosFragment extends Fragment implements SwipeRefreshLayout.OnR
     }
 
     @Override
-    public void recyclerViewListClicked(Photo photo) {
+    public void onCircleImageClick(Photo photo) {
+
+    }
+
+    @Override
+    public void onMainImageClick(Photo photo) {
         Intent intent = new Intent(getActivity(),FullScreenActivity.class);
         intent.putExtra("farm", photo.getFarm());
         intent.putExtra("server",photo.getServer());
@@ -128,5 +132,14 @@ public class MyPhotosFragment extends Fragment implements SwipeRefreshLayout.OnR
         intent.putExtra("secret", photo.getSecret());
         intent.putExtra("owner", photo.getOwner());
         startActivity(intent);
+    }
+
+    @Override
+    public void onFavoriteClick(Photo photo) {
+        toggleFavorite(photo);
+    }
+
+    private void toggleFavorite(Photo photo){
+
     }
 }

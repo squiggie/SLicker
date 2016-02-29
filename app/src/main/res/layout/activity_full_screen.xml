@@ -1,5 +1,13 @@
-<ImageView
-    android:id="@+id/imageFullScreen"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:android="http://schemas.android.com/apk/res/android"/>
+    android:backgroundTint="@color/colorPrimaryLight">
+
+    <ImageView
+    android:id="@+id/imageFullScreen"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"/>
+
+</LinearLayout>
+
