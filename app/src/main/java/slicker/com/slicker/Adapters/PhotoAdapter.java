@@ -55,21 +55,7 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.MyViewHolder
         //Get and set main Photo
         String url = String.format(MyConstants.IMAGE_URL, farm, server, id, secret, size);
         Glide.with(mContext).load(url).fitCenter().diskCacheStrategy(DiskCacheStrategy.ALL).placeholder(new ColorDrawable(Color.GRAY)).crossFade().into(holder.imageViewSquare);
-
-        /*//set Photo title
-        holder.tvTitle.setText(mPhotos.get(position).getTitle());
-
-        //set if photo is favorite
-        RealmQuery<Photo> query = mRealm.where(Photo.class);
-        query.equalTo("id", id);
-        Photo results = query.findFirst();
-        if ((results != null && results.getIsFavorite() == true) || mPhotos.get(position).getIsFavorite()){
-            holder.imageViewFavorite.setImageResource(R.drawable.ic_star);
-        } else {
-            holder.imageViewFavorite.setImageResource(R.drawable.ic_star_outline);
-        }*/
     }
-
 
     public void add(Photo photo){
         mPhotos.add(photo);
@@ -90,23 +76,11 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.MyViewHolder
 
     public class MyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         private ImageView imageViewSquare;
-        //private CircleImageView buddyIcon;
-        //private TextView tvUserNameCard;
-        //private TextView tvTitle;
-        //private ImageView imageViewFavorite;
-
 
         public MyViewHolder(View itemView) {
             super(itemView);
             imageViewSquare = (ImageView) itemView.findViewById(R.id.imageViewSquare);
-            //buddyIcon = (CircleImageView) itemView.findViewById(R.id.buddyIconCard);
-            //tvUserNameCard = (TextView) itemView.findViewById(R.id.tvUserNameCard);
-            //tvTitle = (TextView) itemView.findViewById(R.id.tvTitle);
-            //imageViewFavorite = (ImageView) itemView.findViewById(R.id.imageViewFavorite);
-
             imageViewSquare.setOnClickListener(this);
-            //buddyIcon.setOnClickListener(this);
-            //imageViewFavorite.setOnClickListener(this);
             itemView.setOnClickListener(this);
         }
 

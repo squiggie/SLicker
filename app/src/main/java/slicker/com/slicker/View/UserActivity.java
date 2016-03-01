@@ -104,7 +104,8 @@ public class UserActivity extends AppCompatActivity implements SwipeRefreshLayou
     private void getPhotos() {
         //Get User Pictures
         mSwipeContainer.post(new Runnable() {
-            @Override public void run() {
+            @Override
+            public void run() {
                 mSwipeContainer.setRefreshing(true);
             }
         });

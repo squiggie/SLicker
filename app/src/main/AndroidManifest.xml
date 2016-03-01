@@ -35,6 +35,15 @@
         </activity>
         <activity android:name=".View.FullScreenActivity">
         </activity>
+        <activity
+            android:name=".View.UserActivity"
+            android:label="@string/title_activity_user"
+            android:parentActivityName=".View.MainActivity"
+            android:theme="@style/AppTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="slicker.com.slicker.View.MainActivity"/>
+        </activity>
     </application>
 
 </manifest>

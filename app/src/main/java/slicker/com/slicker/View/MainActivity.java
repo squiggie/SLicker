@@ -38,6 +38,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private SharedPreferences sp;
     private Realm mRealm;
     private User mUser;
+    private Toolbar mToolbar;
 
     private TextView tvRealName;
     private TextView tvUserName;
@@ -47,15 +48,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        mToolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(mToolbar);
         mRealm = Realm.getInstance(this);
         sp = getSharedPreferences(MyConstants.SP_KEY, MODE_PRIVATE);
 
-        //FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        //fab.setVisibility(View.GONE);
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
@@ -192,6 +191,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Intent intent = getBaseContext().getPackageManager().getLaunchIntentForPackage(getBaseContext().getPackageName());
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(intent);
+    }
+
+    public void setActionBarTitle(String title){
+        mToolbar.setTitle(title);
     }
 }
 

@@ -22,17 +22,17 @@
         <de.hdodenhof.circleimageview.CircleImageView
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:id="@+id/buddyIconCard"
+            android:id="@+id/buddyIconFullScreen"
             app:civ_border_width="2dp"
             app:civ_border_color="#FF000000"
-            android:padding="8dp"
-            />
+            android:layout_margin="@dimen/fab_margin"
+            app:elevation="4dp"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/tvUserNameCard"
-            android:layout_toRightOf="@+id/buddyIconCard"
-            android:layout_alignTop="@id/buddyIconCard"
+            android:layout_toRightOf="@+id/buddyIconFullScreen"
+            android:layout_alignTop="@id/buddyIconFullScreen"
             android:paddingLeft="8dp"
             android:textColor="@color/colorPrimaryLight"
             tools:text="Landen Melton"/>
@@ -42,7 +42,7 @@
             android:id="@+id/tvTitle"
             android:layout_below="@+id/tvUserNameCard"
             android:layout_alignLeft="@+id/tvUserNameCard"
-            android:layout_toRightOf="@+id/buddyIcon"
+            android:layout_toRightOf="@+id/buddyIconFullScreen"
             android:paddingLeft="8dp"
             android:textColor="@color/colorPrimaryLight"
             tools:text="This is a generic title"/>
@@ -59,6 +59,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|end"
             android:layout_margin="@dimen/fab_margin"
-            tools:src="@drawable/ic_star_outline"/>
+            tools:src="@drawable/ic_star_outline"
+            app:elevation="4dp"/>
         </com.github.jorgecastilloprz.FABProgressCircle>
 </android.support.design.widget.CoordinatorLayout>

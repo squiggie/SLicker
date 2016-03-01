@@ -4,12 +4,14 @@ package slicker.com.slicker.View;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,8 +23,8 @@ import org.json.JSONObject;
 
 import slicker.com.slicker.Adapters.PhotoAdapter;
 import slicker.com.slicker.Controller.API.MyPhotosAsyncTask;
+import slicker.com.slicker.Controller.EndlessRecyclerViewScrollListener;
 import slicker.com.slicker.Controller.MyInterfaces;
-import slicker.com.slicker.Controller.RecyclerOnScrollListener;
 import slicker.com.slicker.Model.MyConstants;
 import slicker.com.slicker.Model.Photo;
 import slicker.com.slicker.R;
@@ -53,15 +55,23 @@ public class MyPhotosFragment extends Fragment implements SwipeRefreshLayout.OnR
         mSwipeContainer.setOnRefreshListener(this);
         mAdapter = new PhotoAdapter(getActivity(),this);
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.rvMyPhotos);
-        LinearLayoutManager lm = new LinearLayoutManager(getActivity(),LinearLayoutManager.VERTICAL,false);
-        mRecyclerView.setLayoutManager(lm);
-        mRecyclerView.setAdapter(mAdapter);
-        mRecyclerView.setAdapter(mAdapter);
+        getActivity().setTitle("My Photos");
 
-        mRecyclerView.addOnScrollListener(new RecyclerOnScrollListener(lm) {
+        StaggeredGridLayoutManager sglm = null;
+        LinearLayoutManager llm = null;
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
+            sglm = new StaggeredGridLayoutManager(3, StaggeredGridLayoutManager.VERTICAL);
+            mRecyclerView.setLayoutManager(sglm);
+        } else {
+            llm = new LinearLayoutManager(getActivity(),LinearLayoutManager.VERTICAL,false);
+            mRecyclerView.setLayoutManager(llm);
+        }
+
+        mRecyclerView.setAdapter(mAdapter);
+        mRecyclerView.addOnScrollListener(new EndlessRecyclerViewScrollListener(llm) {
             @Override
-            public void onLoadMore() {
-                getPhotos();
+            public void onLoadMore(int page, int totalItemsCount) {
+
             }
         });
 
@@ -144,13 +154,4 @@ public class MyPhotosFragment extends Fragment implements SwipeRefreshLayout.OnR
         startActivity(intent);
     }
 
-    @Override
-    public void recyclerViewBuddyImageClicked(Photo photo, View v) {
-
-    }
-
-    @Override
-    public void recyclerViewFavoriteImageClicked(Photo photo, View v, int position) {
-
-    }
 }

@@ -43,7 +43,7 @@ public class MyPhotosAsyncTask extends AsyncTask<String, String, String> {
                     .build(FlickrApi.instance());
             Token accessToken = new Token(params[0],params[1]);
             OAuthRequest request = new OAuthRequest(Verb.GET, MyConstants.PROTECTED_RESOURCE_URL, service);
-            request.addQuerystringParameter("method",MyConstants.FLICKR_METHOD_MYPHOTOS);
+            request.addQuerystringParameter("method",MyConstants.FLICKR_METHOD_PEOPLE_PHOTOS);
             request.addQuerystringParameter("format","json");
             request.addQuerystringParameter("api_key",MyConstants.API_KEY);
             request.addQuerystringParameter("nojsoncallback","1");

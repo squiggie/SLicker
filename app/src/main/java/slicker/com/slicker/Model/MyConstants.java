@@ -15,7 +15,7 @@ public class MyConstants {
     public static final String BASE_FLICKR_URL = "https://api.flickr.com/services/rest/?method=%s&format=json&nojsoncallback=1&api_key=%s";
     public static final String FLICKR_METHOD_INTERESTING = "flickr.interestingness.getList";
     public static final String FLICKR_METHOD_FAVORITES = "flickr.favorites.getList";
-    public static final String FLICKR_METHOD_MYPHOTOS = "flickr.people.getPhotos";
+    public static final String FLICKR_METHOD_PEOPLE_PHOTOS = "flickr.people.getPhotos";
     public static final String FLICKR_METHOD_ADDFAVORITE = "flickr.favorites.add";
     public static final String FLICKR_METHOD_REMOVEFAVORITE = "flickr.favorites.remove";
     public static final String FLICKR_METHOD_PEOPLE_GETINFO = "flickr.people.getInfo";

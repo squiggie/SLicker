@@ -3,11 +3,13 @@ package slicker.com.slicker.View;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,13 +25,14 @@ import java.util.List;
 import io.realm.Realm;
 import slicker.com.slicker.Adapters.PhotoAdapter;
 import slicker.com.slicker.Controller.API.FavoritePhotosAsyncTask;
+import slicker.com.slicker.Controller.EndlessRecyclerViewScrollListener;
 import slicker.com.slicker.Controller.MyInterfaces;
-import slicker.com.slicker.Controller.RecyclerOnScrollListener;
 import slicker.com.slicker.Model.MyConstants;
 import slicker.com.slicker.Model.Photo;
 import slicker.com.slicker.R;
 
-public class FavoritePhotosFragment extends android.support.v4.app.Fragment implements SwipeRefreshLayout.OnRefreshListener, MyInterfaces.OnGetFavoritePhotos, MyInterfaces.RecyclerViewClickListener{
+public class FavoritePhotosFragment extends android.support.v4.app.Fragment implements SwipeRefreshLayout.OnRefreshListener,
+        MyInterfaces.OnGetFavoritePhotos, MyInterfaces.RecyclerViewClickListener {
 
         private PhotoAdapter mAdapter;
         private RecyclerView mRecyclerView;
@@ -55,18 +58,24 @@ public class FavoritePhotosFragment extends android.support.v4.app.Fragment impl
         mSwipeContainer.setOnRefreshListener(this);
         mAdapter = new PhotoAdapter(getActivity(),this);
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.rvFavorite);
-        LinearLayoutManager lm = new LinearLayoutManager(getActivity(),LinearLayoutManager.VERTICAL,false);
-        mRecyclerView.setLayoutManager(lm);
+        getActivity().setTitle("Favorites");
+        StaggeredGridLayoutManager sglm = null;
+        LinearLayoutManager llm = null;
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
+            sglm = new StaggeredGridLayoutManager(3, StaggeredGridLayoutManager.VERTICAL);
+            mRecyclerView.setLayoutManager(sglm);
+        } else {
+            llm = new LinearLayoutManager(getActivity(),LinearLayoutManager.VERTICAL,false);
+            mRecyclerView.setLayoutManager(llm);
+        }
+
         mRecyclerView.setAdapter(mAdapter);
-
-
-        mRecyclerView.addOnScrollListener(new RecyclerOnScrollListener(lm) {
+        mRecyclerView.addOnScrollListener(new EndlessRecyclerViewScrollListener(llm) {
             @Override
-            public void onLoadMore() {
-                getPhotos();
+            public void onLoadMore(int page, int totalItemsCount) {
+
             }
         });
-
         getPhotos();
 
         return rootView;
@@ -162,16 +171,6 @@ public class FavoritePhotosFragment extends android.support.v4.app.Fragment impl
         intent.putExtra("secret", photo.getSecret());
         intent.putExtra("owner", photo.getOwner());
         startActivity(intent);
-    }
-
-    @Override
-    public void recyclerViewBuddyImageClicked(Photo photo, View v) {
-
-    }
-
-    @Override
-    public void recyclerViewFavoriteImageClicked(Photo photo, View v, int position) {
-
     }
 
     private void saveFavoritesToRealm(ArrayList<Photo> photos){

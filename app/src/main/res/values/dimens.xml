@@ -10,4 +10,7 @@
     <dimen name="small_photo_size">55dp</dimen>
     <dimen name="large_photo_size">150dp</dimen>
     <dimen name="flickr_list_item_height">170dp</dimen>
+    <dimen name="app_bar_height">180dp</dimen>
+    <dimen name="text_margin">16dp</dimen>
+
 </resources>

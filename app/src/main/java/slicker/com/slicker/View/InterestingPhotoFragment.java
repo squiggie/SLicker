@@ -1,10 +1,12 @@
 package slicker.com.slicker.View;
 
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,8 +21,8 @@ import org.json.JSONObject;
 
 import slicker.com.slicker.Adapters.PhotoAdapter;
 import slicker.com.slicker.Controller.API.Api;
+import slicker.com.slicker.Controller.EndlessRecyclerViewScrollListener;
 import slicker.com.slicker.Controller.MyInterfaces;
-import slicker.com.slicker.Controller.RecyclerOnScrollListener;
 import slicker.com.slicker.Model.MyConstants;
 import slicker.com.slicker.Model.Photo;
 import slicker.com.slicker.R;
@@ -32,7 +34,6 @@ public class InterestingPhotoFragment extends android.support.v4.app.Fragment im
     private SwipeRefreshLayout mSwipeContainer;
     private int mNumOfPages = 100;
     private int mCurrentPage = 0;
-    //private SmoothProgressBar mSmoothProgress;
 
     public InterestingPhotoFragment() {
     }
@@ -43,23 +44,29 @@ public class InterestingPhotoFragment extends android.support.v4.app.Fragment im
         return fragment;
     }
 
-    @Override
+     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_interesting_photos, container, false);
-        mSwipeContainer = (SwipeRefreshLayout) rootView.findViewById(R.id.swipeInterestingContainer);
-        mSwipeContainer.setOnRefreshListener(this);
-        mAdapter = new PhotoAdapter(getActivity(),this);
-        mRecyclerView = (RecyclerView) rootView.findViewById(R.id.rvInteresting);
-        LinearLayoutManager lm = new LinearLayoutManager(getActivity(),LinearLayoutManager.VERTICAL,false);
-        mRecyclerView.setLayoutManager(lm);
+         View rootView = inflater.inflate(R.layout.fragment_interesting_photos, container, false);
+         mSwipeContainer = (SwipeRefreshLayout) rootView.findViewById(R.id.swipeInterestingContainer);
+         mSwipeContainer.setOnRefreshListener(this);
+         mAdapter = new PhotoAdapter(getActivity(),this);
+         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.rvInteresting);
+         getActivity().setTitle("Flickr Interesting Photos");
+         StaggeredGridLayoutManager sglm = null;
+         LinearLayoutManager llm = null;
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
+            sglm = new StaggeredGridLayoutManager(3, StaggeredGridLayoutManager.VERTICAL);
+            mRecyclerView.setLayoutManager(sglm);
+        } else {
+            llm = new LinearLayoutManager(getActivity(),LinearLayoutManager.VERTICAL,false);
+            mRecyclerView.setLayoutManager(llm);
+        }
         mRecyclerView.setAdapter(mAdapter);
-        //mSmoothProgress = new SmoothProgressBar(getActivity());
-        //mSmoothProgress.setVisibility(View.VISIBLE);
 
-        mRecyclerView.addOnScrollListener(new RecyclerOnScrollListener(lm) {
+        mRecyclerView.addOnScrollListener(new EndlessRecyclerViewScrollListener(llm) {
             @Override
-            public void onLoadMore() {
-                getPhotos();
+            public void onLoadMore(int page, int totalItemsCount) {
+
             }
         });
 
@@ -137,15 +144,5 @@ public class InterestingPhotoFragment extends android.support.v4.app.Fragment im
         intent.putExtra("owner", photo.getOwner());
         intent.putExtra("title",photo.getTitle());
         startActivity(intent);
-    }
-
-    @Override
-    public void recyclerViewBuddyImageClicked(Photo photo, View v) {
-
-    }
-
-    @Override
-    public void recyclerViewFavoriteImageClicked(Photo photo, View v, int position) {
-
     }
 }
