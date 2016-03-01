@@ -1,7 +1,6 @@
 package slicker.com.slicker.View;
 
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -38,7 +37,6 @@ public class MyPhotosFragment extends Fragment implements SwipeRefreshLayout.OnR
     private String mUserID;
     private String mToken;
     private String mSecret;
-    private ProgressDialog mProgressDialog;
 
     public MyPhotosFragment() {
     }
@@ -58,9 +56,7 @@ public class MyPhotosFragment extends Fragment implements SwipeRefreshLayout.OnR
         LinearLayoutManager lm = new LinearLayoutManager(getActivity(),LinearLayoutManager.VERTICAL,false);
         mRecyclerView.setLayoutManager(lm);
         mRecyclerView.setAdapter(mAdapter);
-        mProgressDialog = new ProgressDialog(getActivity());
-        mProgressDialog.setMessage("Getting My Photos");
-        mProgressDialog.dismiss();
+        mRecyclerView.setAdapter(mAdapter);
 
         mRecyclerView.addOnScrollListener(new RecyclerOnScrollListener(lm) {
             @Override
@@ -76,10 +72,14 @@ public class MyPhotosFragment extends Fragment implements SwipeRefreshLayout.OnR
 
     private void getPhotos(){
         if (mCurrentPage <= mNumOfPages){
-            mProgressDialog.show();
+            mSwipeContainer.post(new Runnable() {
+                @Override public void run() {
+                    mSwipeContainer.setRefreshing(true);
+                }
+            });
             getSharedPrefsForAsyncTask();
             String page = String.valueOf(mCurrentPage + 1);
-            MyPhotosAsyncTask myPhotosAsyncTask = new MyPhotosAsyncTask(getActivity(),this, mProgressDialog);
+            MyPhotosAsyncTask myPhotosAsyncTask = new MyPhotosAsyncTask(getActivity(),this,mSwipeContainer);
             myPhotosAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mToken, mSecret, mUserID, page);
         }
     }
@@ -97,15 +97,14 @@ public class MyPhotosFragment extends Fragment implements SwipeRefreshLayout.OnR
         mNumOfPages = 100;
         mAdapter.clear();
         mAdapter.notifyDataSetChanged();
-        mSwipeContainer.setRefreshing(true);
         getPhotos();
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        if (mProgressDialog != null && mProgressDialog.isShowing()){
-            mProgressDialog.dismiss();
+        if (mSwipeContainer != null && mSwipeContainer.isRefreshing()){
+            mSwipeContainer.setRefreshing(false);
         }
     }
 
@@ -123,12 +122,14 @@ public class MyPhotosFragment extends Fragment implements SwipeRefreshLayout.OnR
             }
         } catch (JSONException e) {
             Toast.makeText(getActivity(), R.string.basic_error, Toast.LENGTH_LONG).show();
-            mProgressDialog.dismiss();
+            if (mSwipeContainer != null && mSwipeContainer.isRefreshing()){
+                mSwipeContainer.setRefreshing(false);
+            }
         }
         mAdapter.notifyDataSetChanged();
         mSwipeContainer.setRefreshing(false);
-        if(mProgressDialog.isShowing()){
-            mProgressDialog.dismiss();
+        if (mSwipeContainer != null && mSwipeContainer.isRefreshing()){
+            mSwipeContainer.setRefreshing(false);
         }
     }
 

@@ -1,6 +1,5 @@
 package slicker.com.slicker.View;
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -40,7 +39,6 @@ public class FavoritePhotosFragment extends android.support.v4.app.Fragment impl
         private String mUserID;
         private String mToken;
         private String mSecret;
-        private ProgressDialog mProgressDialog;
 
         public FavoritePhotosFragment() {
         }
@@ -60,9 +58,7 @@ public class FavoritePhotosFragment extends android.support.v4.app.Fragment impl
         LinearLayoutManager lm = new LinearLayoutManager(getActivity(),LinearLayoutManager.VERTICAL,false);
         mRecyclerView.setLayoutManager(lm);
         mRecyclerView.setAdapter(mAdapter);
-        mProgressDialog = new ProgressDialog(getActivity());
-        mProgressDialog.setMessage("Getting Favorites");
-        mProgressDialog.dismiss();
+
 
         mRecyclerView.addOnScrollListener(new RecyclerOnScrollListener(lm) {
             @Override
@@ -78,10 +74,15 @@ public class FavoritePhotosFragment extends android.support.v4.app.Fragment impl
 
     private void getPhotos(){
         if (mCurrentPage <= mNumOfPages){
-            mProgressDialog.show();
+            mSwipeContainer.post(new Runnable() {
+                @Override
+                public void run() {
+                    mSwipeContainer.setRefreshing(true);
+                }
+            });
             getSharedPrefsForAsyncTask();
             String page = String.valueOf(mCurrentPage + 1);
-            FavoritePhotosAsyncTask favoritePhotosAsyncTask = new FavoritePhotosAsyncTask(getActivity(),this, mProgressDialog);
+            FavoritePhotosAsyncTask favoritePhotosAsyncTask = new FavoritePhotosAsyncTask(getActivity(),this ,mSwipeContainer);
             favoritePhotosAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,mToken,mSecret,mUserID,page);
         }
     }
@@ -106,8 +107,8 @@ public class FavoritePhotosFragment extends android.support.v4.app.Fragment impl
     @Override
     public void onPause() {
         super.onPause();
-        if (mProgressDialog != null && mProgressDialog.isShowing()){
-            mProgressDialog.dismiss();
+        if (mSwipeContainer != null && mSwipeContainer.isRefreshing()){
+            mSwipeContainer.setRefreshing(false);
         }
     }
 
@@ -138,13 +139,15 @@ public class FavoritePhotosFragment extends android.support.v4.app.Fragment impl
             }
         } catch (JSONException e) {
             Toast.makeText(getActivity(),R.string.basic_error, Toast.LENGTH_LONG).show();
-            mProgressDialog.dismiss();
+            if (mSwipeContainer != null && mSwipeContainer.isRefreshing()){
+                mSwipeContainer.setRefreshing(false);
+            }
         }
         saveFavoritesToRealm(allPhotos);
         mAdapter.notifyDataSetChanged();
         mSwipeContainer.setRefreshing(false);
-        if(mProgressDialog.isShowing()){
-            mProgressDialog.dismiss();
+        if (mSwipeContainer != null && mSwipeContainer.isRefreshing()){
+            mSwipeContainer.setRefreshing(false);
         }
     }
 

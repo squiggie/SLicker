@@ -1,8 +1,8 @@
 package slicker.com.slicker.Controller.API;
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.widget.Toast;
 
 import com.github.scribejava.apis.FlickrApi;
@@ -21,12 +21,12 @@ public class MyPhotosAsyncTask extends AsyncTask<String, String, String> {
 
     private Context mContext;
     private MyInterfaces.OnGetMyPhotos mListener;
-    private ProgressDialog mProgressDialog;
+    private SwipeRefreshLayout mSwipeContainer;
 
-    public MyPhotosAsyncTask(Context context, MyInterfaces.OnGetMyPhotos listener, ProgressDialog progressDialog) {
+    public MyPhotosAsyncTask(Context context, MyInterfaces.OnGetMyPhotos listener, SwipeRefreshLayout swipe) {
         mContext = context;
         mListener = listener;
-        mProgressDialog = progressDialog;
+        mSwipeContainer = swipe;
     }
 
     @Override
@@ -59,12 +59,11 @@ public class MyPhotosAsyncTask extends AsyncTask<String, String, String> {
 
     @Override
     protected void onPostExecute(String response){
-        if (mProgressDialog != null && mProgressDialog.isShowing()){
-            mProgressDialog.dismiss();
-        }
-
         if (response.contains("error") || response.contains("fail")){
             Toast.makeText(mContext, R.string.basic_error, Toast.LENGTH_LONG).show();
+            if (mSwipeContainer != null && mSwipeContainer.isRefreshing()){
+                mSwipeContainer.setRefreshing(false);
+            }
         } else {
             mListener.onGetMyPhotos(response);
         }

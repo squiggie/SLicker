@@ -1,8 +1,8 @@
 package slicker.com.slicker.Controller.API;
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.widget.Toast;
 
 import com.github.scribejava.apis.FlickrApi;
@@ -21,12 +21,12 @@ public class FavoritePhotosAsyncTask extends AsyncTask<String, String, String>{
 
     private Context mContext;
     private MyInterfaces.OnGetFavoritePhotos mListener;
-    private ProgressDialog mProgressDialog;
+    private SwipeRefreshLayout mSwipeContainer;
 
-    public FavoritePhotosAsyncTask(Context context, MyInterfaces.OnGetFavoritePhotos listener, ProgressDialog progressDialog) {
+    public FavoritePhotosAsyncTask(Context context, MyInterfaces.OnGetFavoritePhotos listener, SwipeRefreshLayout swipe) {
         mContext = context;
         mListener = listener;
-        mProgressDialog = progressDialog;
+        mSwipeContainer = swipe;
     }
 
     @Override
@@ -58,13 +58,11 @@ public class FavoritePhotosAsyncTask extends AsyncTask<String, String, String>{
 
     @Override
     protected void onPostExecute(String response){
-
-        if (mProgressDialog != null && mProgressDialog.isShowing()){
-            mProgressDialog.dismiss();
-        }
-
         if (response.contains("error")){
             Toast.makeText(mContext, R.string.basic_error, Toast.LENGTH_LONG).show();
+            if (mSwipeContainer != null && mSwipeContainer.isRefreshing()){
+                mSwipeContainer.setRefreshing(false);
+            }
         } else {
             mListener.onGetFavoritePhotos(response);
         }

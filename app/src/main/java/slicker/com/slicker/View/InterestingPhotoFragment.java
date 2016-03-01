@@ -1,7 +1,5 @@
 package slicker.com.slicker.View;
 
-import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -34,7 +32,8 @@ public class InterestingPhotoFragment extends android.support.v4.app.Fragment im
     private SwipeRefreshLayout mSwipeContainer;
     private int mNumOfPages = 100;
     private int mCurrentPage = 0;
-    private ProgressDialog mProgressDialog;
+    //private SmoothProgressBar mSmoothProgress;
+
     public InterestingPhotoFragment() {
     }
 
@@ -45,24 +44,17 @@ public class InterestingPhotoFragment extends android.support.v4.app.Fragment im
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_interesting_photos, container, false);
         mSwipeContainer = (SwipeRefreshLayout) rootView.findViewById(R.id.swipeInterestingContainer);
         mSwipeContainer.setOnRefreshListener(this);
-        mSwipeContainer.setRefreshing(true);
         mAdapter = new PhotoAdapter(getActivity(),this);
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.rvInteresting);
         LinearLayoutManager lm = new LinearLayoutManager(getActivity(),LinearLayoutManager.VERTICAL,false);
         mRecyclerView.setLayoutManager(lm);
         mRecyclerView.setAdapter(mAdapter);
-        mProgressDialog = new ProgressDialog(getActivity());
-        mProgressDialog.setMessage("Getting Interesting Photos");
-        mProgressDialog.dismiss();
+        //mSmoothProgress = new SmoothProgressBar(getActivity());
+        //mSmoothProgress.setVisibility(View.VISIBLE);
 
         mRecyclerView.addOnScrollListener(new RecyclerOnScrollListener(lm) {
             @Override
@@ -71,13 +63,17 @@ public class InterestingPhotoFragment extends android.support.v4.app.Fragment im
             }
         });
 
-        mProgressDialog.show();
         getPhotos();
         return rootView;
     }
 
     private void getPhotos() {
         if (mCurrentPage < mNumOfPages){
+            mSwipeContainer.post(new Runnable() {
+                @Override public void run() {
+                    mSwipeContainer.setRefreshing(true);
+                }
+            });
             String url = assembleURL();
             Log.d("Loading","Loading page " + mCurrentPage + " of page " + mNumOfPages);
             Api.get(getActivity()).getJSON(url, new Api.JSONCallback() {
@@ -95,17 +91,15 @@ public class InterestingPhotoFragment extends android.support.v4.app.Fragment im
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-                    if (mProgressDialog.isShowing()){
-                        mProgressDialog.dismiss();
+                    if (mSwipeContainer != null && mSwipeContainer.isRefreshing()){
+                        mSwipeContainer.setRefreshing(false);
                     }
                     mAdapter.notifyDataSetChanged();
-                    mSwipeContainer.setRefreshing(false);
                 }
 
                 @Override
                 public void onGetJSONComplete(VolleyError error) {
                     Toast.makeText(getActivity(),R.string.basic_error,Toast.LENGTH_LONG).show();
-                    mSwipeContainer.setRefreshing(false);
                 }
             });
         }
@@ -116,30 +110,20 @@ public class InterestingPhotoFragment extends android.support.v4.app.Fragment im
     }
 
     @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-    }
-
-    @Override
     public void onRefresh() {
         mCurrentPage = 0;
         mNumOfPages = 100;
         mAdapter.clear();
         mAdapter.notifyDataSetChanged();
-        mSwipeContainer.setRefreshing(true);
+        mSwipeContainer.setRefreshing(false);
         getPhotos();
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        if (mProgressDialog != null && mProgressDialog.isShowing()){
-            mProgressDialog.dismiss();
+        if (mSwipeContainer != null && mSwipeContainer.isRefreshing()){
+            mSwipeContainer.setRefreshing(false);
         }
     }
 
