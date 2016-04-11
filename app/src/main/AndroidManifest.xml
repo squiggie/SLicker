@@ -8,7 +8,7 @@
     <application
         android:name=".SlickerApplication"
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/slicker"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"

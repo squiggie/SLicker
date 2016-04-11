@@ -19,6 +19,7 @@ public class MyConstants {
     public static final String FLICKR_METHOD_ADDFAVORITE = "flickr.favorites.add";
     public static final String FLICKR_METHOD_REMOVEFAVORITE = "flickr.favorites.remove";
     public static final String FLICKR_METHOD_PEOPLE_GETINFO = "flickr.people.getInfo";
+    public static final String FLICKR_METHOD_GET_SIZES = "flickr.photos.getSizes";
     public static final String PROTECTED_RESOURCE_URL = "https://api.flickr.com/services/rest/";
     public static final String SIGNED_API_URL = "https://api.flickr.com/services/rest/?method=%s&format=json&nojsoncallback=1&api_key=" + API_KEY;
 

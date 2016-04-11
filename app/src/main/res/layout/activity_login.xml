@@ -6,37 +6,53 @@
     android:layout_height="match_parent"
     tools:context="slicker.com.slicker.View.LoginActivity">
 
+    <ImageView
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/imageLoginBackground"
+    android:scaleType="centerCrop"/>
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/imageLoginOverlay"
+        android:background="#50000000"/>
     <WebView
         android:id="@+id/webView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="gone">
     </WebView>
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/imageLogo"
+        android:backgroundTint="@color/white"
+        android:background="@drawable/slicker"
+        android:layout_above="@+id/slicker"
+        android:layout_centerHorizontal="true"
+        android:minWidth="150dp"
+        android:minHeight="175dp"/>
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/login_title"
         android:gravity="center"
         android:textStyle="bold|italic"
-        android:textColor="@color/colorPrimaryDark"
+        android:textColor="@color/white"
         android:textSize="@dimen/abc_text_size_display_3_material"
-        android:layout_above="@+id/login"
         android:id="@+id/slicker"
-        android:padding="24dp"/>
-    <Button
+        android:padding="24dp"
+        android:layout_centerVertical="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"/>
+    <android.support.v7.widget.AppCompatButton
         android:id="@+id/login"
-        android:layout_width="@dimen/abc_panel_menu_list_width"
-        android:layout_height="wrap_content"
-        android:drawableRight="@mipmap/ic_flickr"
+        android:layout_width="300dp"
+        android:layout_height="50dp"
         android:text="Login with Flickr"
-        android:layout_centerInParent="true"/>
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Reset"
-        android:id="@+id/reset"
-        android:layout_below="@+id/login"
+        android:background="@drawable/buttonshape"
+        android:drawableRight="@mipmap/ic_flickr"
+        android:padding="0dp"
+        android:layout_below="@+id/slicker"
         android:layout_centerHorizontal="true"/>
-
 </RelativeLayout>

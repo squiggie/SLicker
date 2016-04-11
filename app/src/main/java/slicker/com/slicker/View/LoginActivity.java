@@ -3,30 +3,50 @@ package slicker.com.slicker.View;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.AnimationSet;
+import android.view.animation.DecelerateInterpolator;
+import android.view.animation.ScaleAnimation;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.VolleyError;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.resource.drawable.GlideDrawable;
+import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.request.target.SimpleTarget;
 import com.github.scribejava.core.model.Token;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import slicker.com.slicker.Controller.API.AccessTokenTask;
-import slicker.com.slicker.Controller.MyInterfaces;
+import slicker.com.slicker.Controller.API.Api;
 import slicker.com.slicker.Controller.API.RequestTokenTask;
 import slicker.com.slicker.Controller.API.UserInfoTask;
+import slicker.com.slicker.Controller.MyInterfaces;
 import slicker.com.slicker.Model.MyConstants;
 import slicker.com.slicker.Model.OAuth;
 import slicker.com.slicker.Model.OAuthToken;
+import slicker.com.slicker.Model.Photo;
 import slicker.com.slicker.Model.User;
 import slicker.com.slicker.R;
 
@@ -35,9 +55,12 @@ public class LoginActivity extends AppCompatActivity implements MyInterfaces.OnA
 
     @Bind(R.id.login) Button btnLogin;
     @Bind(R.id.slicker) TextView slicker;
-    @Bind(R.id.reset) Button btnReset;
     @Bind(R.id.webView) WebView webView;
+    @Bind(R.id.imageLogo) ImageView logo;
+    @Bind(R.id.imageLoginBackground) ImageView imageLoginBackground;
+
     private SharedPreferences sp;
+    private List<Photo> mPhotos = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,12 +76,12 @@ public class LoginActivity extends AppCompatActivity implements MyInterfaces.OnA
             }
         }
 
-        webView.setWebViewClient(new WebViewClient(){
+        webView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                if (url.startsWith(MyConstants.CALLBACK_SCHEME)){
+                if (url.startsWith(MyConstants.CALLBACK_SCHEME)) {
                     Uri uri = Uri.parse(url);
-                    toggleVisability();
+                    toggleVisibility();
                     completeOAuthVerify(uri);
                     return true;
                 }
@@ -71,22 +94,16 @@ public class LoginActivity extends AppCompatActivity implements MyInterfaces.OnA
         webView.clearCache(true);
         webView.clearFormData();
         webView.clearHistory();
+
+        getPhotos();
+
+
     }
 
     @OnClick(R.id.login)
     public void login(){
         RequestTokenTask task = new RequestTokenTask(this,this,this);
         task.execute(MyConstants.API_KEY, MyConstants.API_SEC);
-    }
-
-    @OnClick(R.id.reset)
-    public void resetTokens(){
-        SharedPreferences.Editor editor = sp.edit();
-        editor.putString(MyConstants.KEY_TOKEN_SECRET,null);
-        editor.putString(MyConstants.KEY_OAUTH_TOKEN, null);
-        editor.putString(MyConstants.KEY_USER_ID, null);
-        editor.putString(MyConstants.KEY_USER_NAME, null);
-        editor.apply();
     }
 
     public OAuth getOAuthToken() {
@@ -153,7 +170,6 @@ public class LoginActivity extends AppCompatActivity implements MyInterfaces.OnA
         editor.commit();
     }
 
-
     @Override
     public void onSaveOauthRequestToken(Token requestToken) {
         SharedPreferences.Editor editor = sp.edit();
@@ -201,17 +217,11 @@ public class LoginActivity extends AppCompatActivity implements MyInterfaces.OnA
         }
     }
 
-    private void toggleVisability(){
+    private void toggleVisibility(){
         if (btnLogin.getVisibility() == View.GONE){
             btnLogin.setVisibility(View.VISIBLE);
         } else {
             btnLogin.setVisibility(View.GONE);
-        }
-
-        if (btnReset.getVisibility() == View.GONE){
-            btnReset.setVisibility(View.VISIBLE);
-        } else {
-            btnReset.setVisibility(View.GONE);
         }
 
         if (webView.getVisibility() == View.GONE){
@@ -225,11 +235,99 @@ public class LoginActivity extends AppCompatActivity implements MyInterfaces.OnA
         } else {
             slicker.setVisibility(View.GONE);
         }
+        if (logo.getVisibility() == View.GONE){
+            logo.setVisibility(View.VISIBLE);
+        } else {
+            logo.setVisibility(View.GONE);
+        }
     }
 
     @Override
     public void onRequestTokenTaskCompleted(String url) {
-        toggleVisability();
+        toggleVisibility();
         webView.loadUrl(url);
+    }
+
+    private void getPhotos() {
+        String interestingURL = String.format(MyConstants.BASE_FLICKR_URL, MyConstants.FLICKR_METHOD_INTERESTING, MyConstants.API_KEY + "&per_page=" + String.valueOf(300));
+        Api.get(this).getJSON(interestingURL, new Api.JSONCallback() {
+            @Override
+            public void onGetJSONComplete(JSONObject json) {
+                try {
+                    JSONObject photos = json.getJSONObject("photos");
+                    JSONArray items = photos.getJSONArray("photo");
+                    for (int i = 0; i < items.length(); i++){
+                        Photo photo = new Photo(items.getJSONObject(i));
+                        mPhotos.add(photo);
+                    }
+                    animate(0);
+                } catch (JSONException e) {
+                }
+            }
+            @Override
+            public void onGetJSONComplete(VolleyError error) {
+            }
+        });
+    }
+
+    private void animate(final int imageIndex) {
+        imageLoginBackground.setVisibility(View.INVISIBLE);    //Visible or invisible by default - this will apply when the animation ends
+        Photo photo = mPhotos.get(imageIndex);
+        String size = "c";
+        String url = String.format(MyConstants.IMAGE_URL, photo.getFarm(), photo.getServer(), photo.getId(), photo.getSecret(), size);
+        Glide.with(this).load(url).fitCenter().diskCacheStrategy(DiskCacheStrategy.ALL).into(new SimpleTarget<GlideDrawable>() {
+            @Override
+            public void onResourceReady(GlideDrawable resource, GlideAnimation<? super GlideDrawable> glideAnimation) {
+                int fadeInDuration = 5000; // Configure time values here
+                int timeBetween = 3000;
+                int fadeOutDuration = 5000;
+
+                imageLoginBackground.setImageDrawable(resource);
+                Animation fadeIn = new AlphaAnimation(0.00f,.9f);
+                fadeIn.setInterpolator(new DecelerateInterpolator());
+                fadeIn.setDuration(fadeInDuration);
+
+                Animation fadeOut = new AlphaAnimation(.9f,0.00f);
+                fadeOut.setInterpolator(new AccelerateInterpolator());
+                fadeOut.setStartOffset(fadeInDuration + timeBetween);
+                fadeOut.setDuration(fadeOutDuration);
+
+                Random random = new Random();
+                Float randX = random.nextFloat() * (1.2f - 1f) + 1f;
+                Float randY = random.nextFloat() * (1.22f - 1f) + 1f;
+                Animation zoom = new ScaleAnimation(1.0f,randX,1.0f,randY);
+                zoom.setDuration(fadeInDuration + timeBetween + fadeOutDuration);
+
+                AnimationSet animation = new AnimationSet(false);
+                animation.addAnimation(fadeIn);
+                animation.addAnimation(fadeOut);
+                animation.addAnimation(zoom);
+                animation.setRepeatCount(1);
+
+                imageLoginBackground.startAnimation(animation);
+
+                fadeOut.setAnimationListener(new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {
+
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        if (imageIndex  + 1 > mPhotos.size() - 1) {
+                            animate(0);  //Calls itself to start the animation all over again in a loop if forever = true
+                        }
+                        else {
+                            animate(imageIndex + 1); //Calls itself until it gets to the end of the array
+                        }
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {
+
+                    }
+                });
+            }
+        });
     }
 }

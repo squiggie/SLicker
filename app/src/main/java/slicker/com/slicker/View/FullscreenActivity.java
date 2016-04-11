@@ -1,7 +1,7 @@
 package slicker.com.slicker.View;
 
-import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
@@ -62,7 +62,8 @@ public class FullScreenActivity extends AppCompatActivity implements FloatingAct
         final ImageView fullScreenImage = (ImageView) findViewById(R.id.imageViewFull);
         final TextView tvUserName = (TextView) findViewById(R.id.tvUserNameCard);
         TextView tvTitle = (TextView) findViewById(R.id.tvTitle);
-        final CircleImageView buddyIcon = (CircleImageView) findViewById(R.id.buddyIconCard);
+        final CircleImageView buddyIcon = (CircleImageView) findViewById(R.id.buddyIconFullScreen);
+        buddyIcon.setOnClickListener(this);
         mFABFavorite = (FloatingActionButton) findViewById(R.id.fabFavorite);
         mFABFavorite.setOnClickListener(this);
         mFABProgress = (FABProgressCircle) findViewById(R.id.fabProgressCircle);
@@ -80,10 +81,6 @@ public class FullScreenActivity extends AppCompatActivity implements FloatingAct
 
         String url = String.format(MyConstants.IMAGE_URL, mPhoto.getFarm(), mPhoto.getServer(), mPhoto.getId(), mPhoto.getSecret(), "b");
 
-        final ProgressDialog dialog = new ProgressDialog(this);
-        dialog.setMessage("Downloading Photo");
-        dialog.show();
-
         Glide
             .with(this)
             .load(url)
@@ -93,7 +90,6 @@ public class FullScreenActivity extends AppCompatActivity implements FloatingAct
             .into(new ViewTarget<ImageView, GlideDrawable>(fullScreenImage) {
                 @Override
                 public void onResourceReady(GlideDrawable resource, GlideAnimation anim) {
-                    dialog.dismiss();
                     int width = resource.getIntrinsicWidth();
                     int height = resource.getIntrinsicHeight();
                     if (width >= height) {
@@ -111,7 +107,6 @@ public class FullScreenActivity extends AppCompatActivity implements FloatingAct
                 @Override
                 public void onLoadFailed(Exception e, Drawable errorDrawable) {
                     super.onLoadFailed(e, errorDrawable);
-                    dialog.dismiss();
                 }
             });
 
@@ -133,7 +128,6 @@ public class FullScreenActivity extends AppCompatActivity implements FloatingAct
 
             @Override
             public void onGetJSONComplete(VolleyError error) {
-
             }
         });
 
@@ -157,35 +151,47 @@ public class FullScreenActivity extends AppCompatActivity implements FloatingAct
 
     @Override
     public void onClick(View v) {
-        mFABProgress.show();
-        RealmQuery<Photo> query = mRealm.where(Photo.class);
-        query.equalTo("id",mPhoto.getId());
-        Photo favorite = query.findFirst();
-        getSharedPrefsForAsyncTask();
-        if (mPhoto.getIsFavorite()){
-            //unfavorite
-            mPhoto.setIsFavorite(false);
-            //remove from realm
-            if (query.count() > 0){
-                mRealm.beginTransaction();
-                favorite.removeFromRealm();
-                mRealm.commitTransaction();
-            }
 
-            //update api
-            UpdateFavoritesAsyncTask updateFavoriteAsyncTask = new UpdateFavoritesAsyncTask(this, this, mFABProgress);
-            updateFavoriteAsyncTask.execute(mToken,mSecret,"remove",mPhoto.getId());
-        } else {
-            //favorite
-            mPhoto.setIsFavorite(true);
-            //add to realm
-            mRealm.beginTransaction();
-            mRealm.copyToRealmOrUpdate(mPhoto);
-            mRealm.commitTransaction();
-            //update api
-            UpdateFavoritesAsyncTask updateFavoriteAsyncTask = new UpdateFavoritesAsyncTask(this, this, mFABProgress);
-            updateFavoriteAsyncTask.execute(mToken, mSecret, "add", mPhoto.getId());
+        switch (v.getId()){
+            case R.id.fabFavorite:
+                mFABProgress.show();
+                RealmQuery<Photo> query = mRealm.where(Photo.class);
+                query.equalTo("id",mPhoto.getId());
+                Photo favorite = query.findFirst();
+                getSharedPrefsForAsyncTask();
+                if (mPhoto.getIsFavorite()){
+                    //unfavorite
+                    mPhoto.setIsFavorite(false);
+                    //remove from realm
+                    if (query.count() > 0){
+                        mRealm.beginTransaction();
+                        favorite.removeFromRealm();
+                        mRealm.commitTransaction();
+                    }
+
+                    //update api
+                    UpdateFavoritesAsyncTask updateFavoriteAsyncTask = new UpdateFavoritesAsyncTask(this, this, mFABProgress);
+                    updateFavoriteAsyncTask.execute(mToken,mSecret,"remove",mPhoto.getId());
+                } else {
+                    //favorite
+                    mPhoto.setIsFavorite(true);
+                    //add to realm
+                    mRealm.beginTransaction();
+                    mRealm.copyToRealmOrUpdate(mPhoto);
+                    mRealm.commitTransaction();
+                    //update api
+                    UpdateFavoritesAsyncTask updateFavoriteAsyncTask = new UpdateFavoritesAsyncTask(this, this, mFABProgress);
+                    updateFavoriteAsyncTask.execute(mToken, mSecret, "add", mPhoto.getId());
+                }
+                break;
+            case R.id.buddyIconFullScreen:
+                if (mPhoto != null && !mPhoto.getOwner().isEmpty()){
+                    Intent intent = new Intent(this,UserActivity.class);
+                    intent.putExtra("user_id",mPhoto.getOwner());
+                    startActivity(intent);
+                }
         }
+
     }
 
     private void getSharedPrefsForAsyncTask() {
@@ -198,7 +204,7 @@ public class FullScreenActivity extends AppCompatActivity implements FloatingAct
     @Override
     public void onUpdateFavorite(String response) {
         mFABProgress.hide();
-        Snackbar.make(mCoordinatorLayout,"Favorite updated",Snackbar.LENGTH_SHORT).show();
+        Snackbar.make(mCoordinatorLayout,R.string.favorite_toggled,Snackbar.LENGTH_SHORT).show();
         toggleFAB();
     }
 
