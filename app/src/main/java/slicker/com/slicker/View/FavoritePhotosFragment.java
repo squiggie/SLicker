@@ -22,6 +22,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.hdodenhof.circleimageview.CircleImageView;
 import io.realm.Realm;
 import slicker.com.slicker.Adapters.PhotoAdapter;
 import slicker.com.slicker.Controller.API.FavoritePhotosAsyncTask;
@@ -37,6 +38,7 @@ public class FavoritePhotosFragment extends android.support.v4.app.Fragment impl
         private PhotoAdapter mAdapter;
         private RecyclerView mRecyclerView;
         private SwipeRefreshLayout mSwipeContainer;
+        private CircleImageView mBuddyIcon;
         private int mNumOfPages = 100;
         private int mCurrentPage = 0;
         private String mUserID;
@@ -159,8 +161,6 @@ public class FavoritePhotosFragment extends android.support.v4.app.Fragment impl
             mSwipeContainer.setRefreshing(false);
         }
     }
-
-
 
     @Override
     public void recyclerViewMainImageClicked(Photo photo, View v) {

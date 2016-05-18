@@ -1,13 +1,94 @@
-<LinearLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="4dp">
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <slicker.com.slicker.SquareImageView
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/imageViewSquare"
-        android:scaleType="centerCrop"/>
-</LinearLayout>
+        android:scaleType="centerCrop"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginRight="8dp"/>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:layout_alignRight="@+id/imageViewSquare"
+        android:layout_alignBottom="@+id/imageViewSquare">
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/imageFavorite"
+            android:src="@drawable/ic_favorite_border_black_24dp"
+            android:paddingEnd="8dp"
+            android:paddingRight="8dp"
+            android:tint="@color/colorPrimaryLight"
+            />
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/imageShare"
+            android:src="@drawable/ic_share_black_24dp"
+            android:tint="@color/colorPrimaryLight"
+            />
+    </LinearLayout>
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/imageViewSquare"
+        android:orientation="horizontal"
+        android:paddingLeft="8dp"
+        android:background="@color/colorPrimary"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp">
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/buddyIconPhotoView"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            tools:src="@android:drawable/sym_def_app_icon"
+            android:scaleType="centerCrop"
+            app:civ_border_width="2dp"
+            app:civ_border_color="#FF000000"
+            android:layout_weight=".2"
+            android:layout_centerVertical="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"/>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingLeft="8dp"
+            android:paddingTop="5dp"
+            android:layout_toRightOf="@id/buddyIconPhotoView">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/photoViewUsername"
+                tools:text="Landen Melton"
+                android:textSize="16sp"
+                android:textColor="#de000000"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/viewProfile"
+                android:text="@string/view_profile"
+                android:textSize="14sp"
+                android:textColor="#8b000000"/>
+        </LinearLayout>
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/photoViewFavoriteUser"
+            android:src="@drawable/ic_add_black_24dp"
+            android:tint="@color/colorPrimaryLight"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_margin="16dp"/>
+    </RelativeLayout>
+
+</RelativeLayout>
 

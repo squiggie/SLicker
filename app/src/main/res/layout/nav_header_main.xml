@@ -4,7 +4,7 @@
               android:layout_height="@dimen/nav_header_height"
               xmlns:tools="http://schemas.android.com/tools"
               xmlns:app="http://schemas.android.com/apk/res-auto"
-              android:background="@drawable/side_nav_bar"
+              android:background="#009688"
               android:gravity="bottom"
               android:orientation="vertical"
               android:paddingBottom="@dimen/activity_vertical_margin"
@@ -27,12 +27,14 @@
         android:layout_height="wrap_content"
         android:paddingTop="@dimen/nav_header_vertical_spacing"
         tools:text="Landen Melton"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+        android:gravity="center_horizontal"/>
 
     <TextView
         android:id="@+id/tvUsername"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        tools:text="squigge@gmail.com"/>
+        tools:text="squigge@gmail.com"
+        android:gravity="center_horizontal"/>
 
 </LinearLayout>

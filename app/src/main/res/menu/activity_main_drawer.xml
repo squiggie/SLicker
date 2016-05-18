@@ -2,20 +2,24 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <group
         android:id="@+id/menu_top"
-        android:checkableBehavior="single">
+        android:checkableBehavior="single"
+        android:background="?android:attr/activatedBackgroundIndicator">
         <item
             android:id="@+id/nav_myphotos"
             android:icon="@drawable/ic_menu_gallery"
-            android:title="My Photos"/>
+            android:title="My Photos"
+            android:background="?android:attr/activatedBackgroundIndicator"/>
         <item
             android:checked="true"
             android:id="@+id/nav_favorites"
             android:icon="@drawable/ic_menu_favorite"
-            android:title="Favorites"/>
+            android:title="Favorites"
+            android:background="?android:attr/activatedBackgroundIndicator"/>
         <item
             android:id="@+id/nav_intereesting"
             android:icon="@drawable/ic_menu_interesting"
-            android:title="Most Interesting"/>
+            android:title="Most Interesting"
+            android:background="?android:attr/activatedBackgroundIndicator"/>
     </group>
 
     <group

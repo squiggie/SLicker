@@ -8,14 +8,20 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
+import com.android.volley.VolleyError;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import io.realm.Realm;
+import de.hdodenhof.circleimageview.CircleImageView;
+import slicker.com.slicker.Controller.API.Api;
 import slicker.com.slicker.Controller.MyInterfaces;
 import slicker.com.slicker.Model.MyConstants;
 import slicker.com.slicker.Model.Photo;
@@ -25,12 +31,10 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.MyViewHolder
     private Context mContext;
     private List<Photo> mPhotos = new ArrayList<>();
     private static MyInterfaces.RecyclerViewClickListener mListener;
-    private Realm mRealm;
 
     public PhotoAdapter(Context context, MyInterfaces.RecyclerViewClickListener listener){
         mContext = context;
         mListener = listener;
-        mRealm = Realm.getInstance(context);
     }
 
     @Override
@@ -46,15 +50,42 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.MyViewHolder
 
     @Override
     public void onBindViewHolder(final MyViewHolder holder, final int position) {
-        String farm = String.valueOf(mPhotos.get(position).getFarm());
-        String server = String.valueOf(mPhotos.get(position).getServer());
-        String id = mPhotos.get(position).getId();
-        String secret = mPhotos.get(position).getSecret();
+        final Photo photo = mPhotos.get(position);
+        final String farm = String.valueOf(photo.getFarm());
+        final String server = String.valueOf(photo.getServer());
+        final String id = photo.getId();
+        final String secret = photo.getSecret();
         String size = "n";
 
         //Get and set main Photo
         String url = String.format(MyConstants.IMAGE_URL, farm, server, id, secret, size);
         Glide.with(mContext).load(url).fitCenter().diskCacheStrategy(DiskCacheStrategy.ALL).placeholder(new ColorDrawable(Color.GRAY)).crossFade().into(holder.imageViewSquare);
+
+        Api.get(mContext).getUserInfo(photo.getOwner(), new Api.UserInfoCallback() {
+            @Override
+            public void onUserInfoDownloadComplete(String result) {
+                try {
+                    JSONObject root = new JSONObject(result);
+                    JSONObject person = root.getJSONObject("person");
+                    JSONObject usernameJObject = person.getJSONObject("username");
+                    String username = usernameJObject.getString("_content");
+                    String iconFarm = person.getString("iconfarm");
+                    String iconServer = person.getString("iconserver");
+                    String url = String.format(MyConstants.BUDDY_ICON_URL, iconFarm, iconServer, photo.getOwner());
+                    Glide.with(mContext).load(url).fitCenter().diskCacheStrategy(DiskCacheStrategy.ALL).into(holder.buddyIcon);
+                    holder.tvPhotoViewUsername.setText(username);
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
+
+            @Override
+            public void onUserInfoDownloadComplete(VolleyError error) {
+
+            }
+        });
     }
 
     public void add(Photo photo){
@@ -76,12 +107,19 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.MyViewHolder
 
     public class MyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         private ImageView imageViewSquare;
+        private CircleImageView buddyIcon;
+        private TextView tvPhotoViewUsername;
+        private ImageView imagePhotoViewFavoriteUser;
 
         public MyViewHolder(View itemView) {
             super(itemView);
             imageViewSquare = (ImageView) itemView.findViewById(R.id.imageViewSquare);
             imageViewSquare.setOnClickListener(this);
             itemView.setOnClickListener(this);
+            buddyIcon = (CircleImageView) itemView.findViewById(R.id.buddyIconPhotoView);
+            tvPhotoViewUsername = (TextView) itemView.findViewById(R.id.photoViewUsername);
+            imagePhotoViewFavoriteUser = (ImageView) itemView.findViewById(R.id.photoViewFavoriteUser);
+
         }
 
         @Override

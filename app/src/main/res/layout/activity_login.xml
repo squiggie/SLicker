@@ -27,7 +27,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/imageLogo"
         android:backgroundTint="@color/white"
-        android:background="@drawable/slicker"
+        android:background="@drawable/slicker_logo"
         android:layout_above="@+id/slicker"
         android:layout_centerHorizontal="true"
         android:minWidth="150dp"

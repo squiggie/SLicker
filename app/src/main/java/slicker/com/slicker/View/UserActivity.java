@@ -24,16 +24,17 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import de.hdodenhof.circleimageview.CircleImageView;
-import slicker.com.slicker.Adapters.PhotoAdapter;
+import slicker.com.slicker.Adapters.ProfilePhotoAdapter;
 import slicker.com.slicker.Controller.API.Api;
 import slicker.com.slicker.Controller.MyInterfaces;
 import slicker.com.slicker.Model.MyConstants;
 import slicker.com.slicker.Model.Photo;
+import slicker.com.slicker.MyItemDecoration;
 import slicker.com.slicker.R;
 
 public class UserActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener, MyInterfaces.RecyclerViewClickListener{
 
-    private PhotoAdapter mAdapter;
+    private ProfilePhotoAdapter mAdapter;
     private SwipeRefreshLayout mSwipeContainer;
     private CircleImageView mBuddyIcon;
     private CollapsingToolbarLayout mCollapsingToolbar;
@@ -55,16 +56,18 @@ public class UserActivity extends AppCompatActivity implements SwipeRefreshLayou
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         mBuddyIcon = (CircleImageView) findViewById(R.id.buddyIconUser);
         final TextView tvUserName = (TextView) findViewById(R.id.tvNameUser);
-        final TextView tvDescription = (TextView) findViewById(R.id.tvDescription);
-        mCollapsingToolbar = (CollapsingToolbarLayout) findViewById(R.id.toolbarLayoutUser);
+        final TextView tvDescription = (TextView) findViewById(R.id.tvLocation);
+        mCollapsingToolbar = (CollapsingToolbarLayout) findViewById(R.id.collapsingToolbarUser);
         mSwipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainerUser);
         mSwipeContainer.setOnRefreshListener(this);
 
         //Setup Recyclerview
-        mAdapter = new PhotoAdapter(this,this);
+        mAdapter = new ProfilePhotoAdapter(this,this);
         RecyclerView mRecyclerView = (RecyclerView) findViewById(R.id.rvUser);
-        StaggeredGridLayoutManager sglm = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
-        mRecyclerView.setLayoutManager(sglm);
+        mRecyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
+
+        MyItemDecoration decoration = new MyItemDecoration(8);
+        mRecyclerView.addItemDecoration(decoration);
         mRecyclerView.setAdapter(mAdapter);
 
 
@@ -84,7 +87,7 @@ public class UserActivity extends AppCompatActivity implements SwipeRefreshLayou
                     JSONObject description = person.getJSONObject("description");
                     tvUserName.setText(username.getString("_content"));
                     String descriptionText = description.getString("_content");
-                    descriptionText = descriptionText.length() > 100 ? descriptionText.substring(0, 100) + "...." : descriptionText;
+                    descriptionText = descriptionText.length() > 25 ? descriptionText.substring(0, 25) + "...." : descriptionText;
                     tvDescription.setText(descriptionText);
                     getBuddyIcon();
                 } catch (JSONException e) {
@@ -102,13 +105,6 @@ public class UserActivity extends AppCompatActivity implements SwipeRefreshLayou
     }
 
     private void getPhotos() {
-        //Get User Pictures
-        mSwipeContainer.post(new Runnable() {
-            @Override
-            public void run() {
-                mSwipeContainer.setRefreshing(true);
-            }
-        });
         String picturesURL = String.format(MyConstants.BASE_FLICKR_URL,MyConstants.FLICKR_METHOD_PEOPLE_PHOTOS,MyConstants.API_KEY) + "&user_id=" + mUserID;
         Api.get(this).getJSON(picturesURL, new Api.JSONCallback() {
             @Override

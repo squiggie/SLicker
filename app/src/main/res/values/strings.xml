@@ -15,4 +15,8 @@
     <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="title_activity_user">UserActivity</string>
     <string name="favorite_toggled">Favorite Updated</string>
+    <string name="view_profile">View Profile</string>
+    <string name="share_button_title">Share</string>
+    <string name="follow_button_title">Follow</string>
+    <string name="lorem_ipsum">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris</string>
 </resources>
