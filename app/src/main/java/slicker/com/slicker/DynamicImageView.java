@@ -22,7 +22,30 @@ import android.widget.RelativeLayout;
  *
  */
 public class DynamicImageView extends ImageView {
+    /*private float whRatio = 0;
+
+    public DynamicImageView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+    }
+
+    public DynamicImageView(Context context) {
+        super(context);
+    }
+
+    public void setRatio(float ratio) {
+        whRatio = ratio;
+    }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        if (whRatio != 0) {
+            int width = getMeasuredWidth();
+            int height = (int)(whRatio * width);
+            setMeasuredDimension(width, height);
+        }*/
     public static float radius = 4.0f;
+    private float whRatio = 0;
 
     private ImageChangeListener imageChangeListener;
     private boolean scaleToWidth = false; // this flag determines if should measure height manually dependent of width
@@ -87,18 +110,25 @@ public class DynamicImageView extends ImageView {
         this.imageChangeListener = imageChangeListener;
     }
 
+    public void setRatio(float ratio) {
+        whRatio = ratio;
+    }
+
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        if (whRatio != 0) {
+            int width = getMeasuredWidth();
+            int height = (int)(whRatio * width);
+            setMeasuredDimension(width, height);
+        }
 
         int widthMode = MeasureSpec.getMode(widthMeasureSpec);
         int heightMode = MeasureSpec.getMode(heightMeasureSpec);
         int width = MeasureSpec.getSize(widthMeasureSpec);
         int height = MeasureSpec.getSize(heightMeasureSpec);
 
-        /**
-         * if both width and height are set scale width first. modify in future if necessary
-         */
-
+       //if both width and height are set scale width first. modify in future if necessary
         if(widthMode == MeasureSpec.EXACTLY || widthMode == MeasureSpec.AT_MOST){
             scaleToWidth = true;
         }else if(heightMode == MeasureSpec.EXACTLY || heightMode == MeasureSpec.AT_MOST){
@@ -144,5 +174,4 @@ public class DynamicImageView extends ImageView {
 
         }
     }
-
 }

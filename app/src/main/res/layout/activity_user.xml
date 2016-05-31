@@ -38,10 +38,13 @@
                             android:layout_height="wrap_content"
                             android:id="@+id/tvDescription"
                             android:gravity="start"
-                            android:text="@string/lorem_ipsum"
+                            tools:text="@string/lorem_ipsum"
                             android:textColor="@color/text_color_semi_transparent"
                             android:textSize="14sp"
-                            android:padding="20dp"/>
+                            android:padding="10dp"
+                            android:minLines="0"
+                            android:maxLength="250"
+                            android:maxLines="4"/>
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -110,9 +113,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/tvNameUser"
-                android:text="Landen Melton"
-                android:layout_toLeftOf="@+id/buddyIconUser"
-                android:layout_marginTop="8dp"/>
+                tools:text="Landen Melton"
+                tools:layout_toLeftOf="@+id/buddyIconUser"
+                android:layout_marginTop="8dp"
+                android:maxLines="1"
+                android:singleLine="true"
+                android:layout_toLeftOf="@+id/buddyIconUser"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -120,7 +126,11 @@
                 android:layout_below="@+id/tvNameUser"
                 android:layout_alignEnd="@+id/tvNameUser"
                 android:layout_alignRight="@+id/tvNameUser"
-                android:text="Springfield, MO"/>
+                tools:text="Springfield, MO"
+                android:layout_alignBottom="@+id/buddyIconUser"
+                android:maxLines="1"
+                android:singleLine="true"
+                android:layout_toLeftOf="@+id/buddyIconUser"/>
             <de.hdodenhof.circleimageview.CircleImageView
                 android:layout_width="40dp"
                 android:layout_height="40dp"
@@ -128,7 +138,7 @@
                 app:civ_border_width="2dp"
                 app:civ_border_color="#FF000000"
                 android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="false"
+                android:layout_alignParentRight="true"
                 android:layout_margin="8dp"/>
         </RelativeLayout>
 

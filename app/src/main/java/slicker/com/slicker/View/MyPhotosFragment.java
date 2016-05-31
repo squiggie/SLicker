@@ -154,4 +154,26 @@ public class MyPhotosFragment extends Fragment implements SwipeRefreshLayout.OnR
         startActivity(intent);
     }
 
+    @Override
+    public void recyclerViewShareClicked() {
+
+    }
+
+    @Override
+    public void recyclerViewFavoriteClicked(Photo photo) {
+
+    }
+
+    @Override
+    public void recyclerViewFavoriteUserClicked() {
+
+    }
+
+    @Override
+    public void recyclerViewProfileClicked(String userID) {
+        Intent intent = new Intent(getContext(),UserActivity.class);
+        intent.putExtra("user_id",userID);
+        startActivity(intent);
+    }
+
 }

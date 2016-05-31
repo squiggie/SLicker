@@ -22,7 +22,7 @@
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/imageFavorite"
+            android:id="@+id/imageFavoritePhotoView"
             android:src="@drawable/ic_favorite_border_black_24dp"
             android:paddingEnd="8dp"
             android:paddingRight="8dp"
@@ -31,7 +31,7 @@
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/imageShare"
+            android:id="@+id/imageSharePhotoView"
             android:src="@drawable/ic_share_black_24dp"
             android:tint="@color/colorPrimaryLight"
             />

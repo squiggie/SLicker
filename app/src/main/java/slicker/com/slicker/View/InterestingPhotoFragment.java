@@ -1,6 +1,8 @@
 package slicker.com.slicker.View;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -19,21 +21,26 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import io.realm.Realm;
+import io.realm.RealmQuery;
 import slicker.com.slicker.Adapters.PhotoAdapter;
 import slicker.com.slicker.Controller.API.Api;
+import slicker.com.slicker.Controller.API.UpdateFavoritesAsyncTask;
 import slicker.com.slicker.Controller.EndlessRecyclerViewScrollListener;
 import slicker.com.slicker.Controller.MyInterfaces;
 import slicker.com.slicker.Model.MyConstants;
 import slicker.com.slicker.Model.Photo;
 import slicker.com.slicker.R;
 
-public class InterestingPhotoFragment extends android.support.v4.app.Fragment implements SwipeRefreshLayout.OnRefreshListener,MyInterfaces.RecyclerViewClickListener{
+public class InterestingPhotoFragment extends android.support.v4.app.Fragment implements SwipeRefreshLayout.OnRefreshListener,MyInterfaces.RecyclerViewClickListener, MyInterfaces.OnUpdateFavorite{
 
     private PhotoAdapter mAdapter;
     private RecyclerView mRecyclerView;
     private SwipeRefreshLayout mSwipeContainer;
     private int mNumOfPages = 100;
     private int mCurrentPage = 0;
+    private Realm mRealm;
+    private Photo mFavorite;
 
     public InterestingPhotoFragment() {
     }
@@ -47,10 +54,12 @@ public class InterestingPhotoFragment extends android.support.v4.app.Fragment im
      @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
          View rootView = inflater.inflate(R.layout.fragment_interesting_photos, container, false);
+         mRealm = Realm.getInstance(getContext());
          mSwipeContainer = (SwipeRefreshLayout) rootView.findViewById(R.id.swipeInterestingContainer);
          mSwipeContainer.setOnRefreshListener(this);
          mAdapter = new PhotoAdapter(getActivity(),this);
          mRecyclerView = (RecyclerView) rootView.findViewById(R.id.rvInteresting);
+
          getActivity().setTitle("Flickr Interesting Photos");
          StaggeredGridLayoutManager sglm = null;
          LinearLayoutManager llm = null;
@@ -107,6 +116,9 @@ public class InterestingPhotoFragment extends android.support.v4.app.Fragment im
                 @Override
                 public void onGetJSONComplete(VolleyError error) {
                     Toast.makeText(getActivity(),R.string.basic_error,Toast.LENGTH_LONG).show();
+                    if (mSwipeContainer != null && mSwipeContainer.isRefreshing()){
+                        mSwipeContainer.setRefreshing(false);
+                    }
                 }
             });
         }
@@ -136,13 +148,81 @@ public class InterestingPhotoFragment extends android.support.v4.app.Fragment im
 
     @Override
     public void recyclerViewMainImageClicked(Photo photo, View v) {
-        Intent intent = new Intent(getActivity(),FullScreenActivity.class);
+        /*Intent intent = new Intent(getActivity(),FullScreenActivity.class);
         intent.putExtra("farm", photo.getFarm());
         intent.putExtra("server",photo.getServer());
         intent.putExtra("id", photo.getId());
         intent.putExtra("secret", photo.getSecret());
         intent.putExtra("owner", photo.getOwner());
         intent.putExtra("title",photo.getTitle());
+        startActivity(intent);*/
+    }
+
+    @Override
+    public void recyclerViewShareClicked() {
+
+    }
+
+    @Override
+    public void recyclerViewFavoriteClicked(Photo photo) {
+        mFavorite = photo;
+        SharedPreferences sp = getActivity().getSharedPreferences(MyConstants.SP_KEY, Context.MODE_PRIVATE);
+        String token = sp.getString(MyConstants.KEY_OAUTH_TOKEN,null);
+        String secret = sp.getString(MyConstants.KEY_TOKEN_SECRET,null);
+
+        if (photo.getIsFavorite()){
+            UpdateFavoritesAsyncTask updateFavoriteAsyncTask = new UpdateFavoritesAsyncTask(getContext(), this);
+            updateFavoriteAsyncTask.execute(token,secret,"remove",photo.getId());
+        } else {
+            UpdateFavoritesAsyncTask updateFavoriteAsyncTask = new UpdateFavoritesAsyncTask(getContext(), this);
+            updateFavoriteAsyncTask.execute(token, secret, "add", photo.getId());
+        }
+    }
+
+    @Override
+    public void recyclerViewFavoriteUserClicked() {
+
+    }
+
+    @Override
+    public void recyclerViewProfileClicked(String userID) {
+        Intent intent = new Intent(getContext(),UserActivity.class);
+        intent.putExtra("user_id",userID);
         startActivity(intent);
+    }
+
+    @Override
+    public void onUpdateFavorite(String response) {
+        if (response.contains("Photo is owned by you")){
+            Toast.makeText(getContext(), "Can't favorite you're own photo.", Toast.LENGTH_LONG).show();
+        } else if (response.contains("error") || response.contains("fail")){
+            Toast.makeText(getContext(), R.string.basic_error, Toast.LENGTH_LONG).show();
+        } else {
+            toggleFavorite();
+        }
+    }
+
+    private void toggleFavorite(){
+        RealmQuery<Photo> query = mRealm.where(Photo.class);
+        query.equalTo("id",mFavorite.getId());
+        Photo favorite = query.findFirst();
+
+        if (mFavorite.getIsFavorite()){
+            //unfavorite
+            mFavorite.setIsFavorite(false);
+            //remove from realm
+            if (query.count() > 0){
+                mRealm.beginTransaction();
+                favorite.removeFromRealm();
+                mRealm.commitTransaction();
+            }
+        } else {
+            //favorite
+            mFavorite.setIsFavorite(true);
+            //add to realm
+            mRealm.beginTransaction();
+            mRealm.copyToRealmOrUpdate(mFavorite);
+            mRealm.commitTransaction();
+        }
     }
 }

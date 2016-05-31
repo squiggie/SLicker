@@ -2,9 +2,7 @@ package slicker.com.slicker.Controller.API;
 
 import android.content.Context;
 import android.os.AsyncTask;
-import android.widget.Toast;
 
-import com.github.jorgecastilloprz.FABProgressCircle;
 import com.github.scribejava.apis.FlickrApi;
 import com.github.scribejava.core.builder.ServiceBuilder;
 import com.github.scribejava.core.model.OAuthRequest;
@@ -15,18 +13,15 @@ import com.github.scribejava.core.oauth.OAuth10aService;
 
 import slicker.com.slicker.Controller.MyInterfaces;
 import slicker.com.slicker.Model.MyConstants;
-import slicker.com.slicker.R;
 
 public class UpdateFavoritesAsyncTask extends AsyncTask<String, String, String> {
 
     private Context mContext;
     private MyInterfaces.OnUpdateFavorite mListener;
-    private FABProgressCircle mFABProgress;
 
-    public UpdateFavoritesAsyncTask(Context context, MyInterfaces.OnUpdateFavorite listener, FABProgressCircle fabprogress) {
+    public UpdateFavoritesAsyncTask(Context context, MyInterfaces.OnUpdateFavorite listener) {
         mContext = context;
         mListener = listener;
-        mFABProgress = fabprogress;
     }
 
     @Override
@@ -62,14 +57,6 @@ public class UpdateFavoritesAsyncTask extends AsyncTask<String, String, String> 
 
     @Override
     protected void onPostExecute(String response){
-        mFABProgress.hide();
-        if (response.contains("Photo is owned by you")){
-            Toast.makeText(mContext, "Can't favorite you're own photo.", Toast.LENGTH_LONG).show();
-        } else if (response.contains("error") || response.contains("fail")){
-            Toast.makeText(mContext, R.string.basic_error, Toast.LENGTH_LONG).show();
-        } else {
-          mListener.onUpdateFavorite(response);
-        }
-
+        mListener.onUpdateFavorite(response);
     }
 }

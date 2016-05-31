@@ -32,8 +32,7 @@ import slicker.com.slicker.Model.MyConstants;
 import slicker.com.slicker.Model.Photo;
 import slicker.com.slicker.R;
 
-public class FavoritePhotosFragment extends android.support.v4.app.Fragment implements SwipeRefreshLayout.OnRefreshListener,
-        MyInterfaces.OnGetFavoritePhotos, MyInterfaces.RecyclerViewClickListener {
+public class FavoritePhotosFragment extends android.support.v4.app.Fragment implements SwipeRefreshLayout.OnRefreshListener, MyInterfaces.OnGetFavoritePhotos, MyInterfaces.RecyclerViewClickListener {
 
         private PhotoAdapter mAdapter;
         private RecyclerView mRecyclerView;
@@ -173,6 +172,28 @@ public class FavoritePhotosFragment extends android.support.v4.app.Fragment impl
         startActivity(intent);
     }
 
+    @Override
+    public void recyclerViewShareClicked() {
+
+    }
+
+    @Override
+    public void recyclerViewFavoriteClicked(Photo photo) {
+
+    }
+
+    @Override
+    public void recyclerViewFavoriteUserClicked() {
+
+    }
+
+    @Override
+    public void recyclerViewProfileClicked(String userID) {
+        Intent intent = new Intent(getContext(),UserActivity.class);
+        intent.putExtra("user_id",userID);
+        startActivity(intent);
+    }
+
     private void saveFavoritesToRealm(ArrayList<Photo> photos){
         if (getActivity() != null){
             Realm realm = Realm.getInstance(getActivity());
@@ -181,4 +202,5 @@ public class FavoritePhotosFragment extends android.support.v4.app.Fragment impl
             realm.commitTransaction();
         }
     }
+
 }

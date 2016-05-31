@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import io.realm.Realm;
+import io.realm.RealmQuery;
 import slicker.com.slicker.Controller.API.Api;
 import slicker.com.slicker.Controller.MyInterfaces;
 import slicker.com.slicker.Model.MyConstants;
@@ -31,10 +33,12 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.MyViewHolder
     private Context mContext;
     private List<Photo> mPhotos = new ArrayList<>();
     private static MyInterfaces.RecyclerViewClickListener mListener;
+    private Realm mRealm;
 
     public PhotoAdapter(Context context, MyInterfaces.RecyclerViewClickListener listener){
         mContext = context;
         mListener = listener;
+        mRealm = Realm.getInstance(context);
     }
 
     @Override
@@ -59,6 +63,7 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.MyViewHolder
 
         //Get and set main Photo
         String url = String.format(MyConstants.IMAGE_URL, farm, server, id, secret, size);
+
         Glide.with(mContext).load(url).fitCenter().diskCacheStrategy(DiskCacheStrategy.ALL).placeholder(new ColorDrawable(Color.GRAY)).crossFade().into(holder.imageViewSquare);
 
         Api.get(mContext).getUserInfo(photo.getOwner(), new Api.UserInfoCallback() {
@@ -86,6 +91,17 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.MyViewHolder
 
             }
         });
+
+        //Set if favorite or not
+        RealmQuery<Photo> query = mRealm.where(Photo.class);
+        query.equalTo("id",photo.getId());
+        Photo favorite = query.findFirst();
+
+        if (favorite != null){ //found photo in favorites
+            holder.imageFavorite.setImageResource(R.drawable.ic_favorite_black_24dp);
+        } else {
+            holder.imageFavorite.setImageResource(R.drawable.ic_favorite_border_black_24dp);
+        }
     }
 
     public void add(Photo photo){
@@ -110,6 +126,9 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.MyViewHolder
         private CircleImageView buddyIcon;
         private TextView tvPhotoViewUsername;
         private ImageView imagePhotoViewFavoriteUser;
+        private ImageView imageShare;
+        private ImageView imageFavorite;
+        private TextView tvViewProfile;
 
         public MyViewHolder(View itemView) {
             super(itemView);
@@ -117,14 +136,48 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.MyViewHolder
             imageViewSquare.setOnClickListener(this);
             itemView.setOnClickListener(this);
             buddyIcon = (CircleImageView) itemView.findViewById(R.id.buddyIconPhotoView);
+            buddyIcon.setOnClickListener(this);
             tvPhotoViewUsername = (TextView) itemView.findViewById(R.id.photoViewUsername);
+            tvPhotoViewUsername.setOnClickListener(this);
             imagePhotoViewFavoriteUser = (ImageView) itemView.findViewById(R.id.photoViewFavoriteUser);
+            imageFavorite = (ImageView) itemView.findViewById(R.id.imageFavoritePhotoView);
+            imageFavorite.setOnClickListener(this);
+            imageShare = (ImageView) itemView.findViewById(R.id.imageSharePhotoView);
+            imageShare.setOnClickListener(this);
+            tvViewProfile = (TextView) itemView.findViewById(R.id.viewProfile);
+            tvViewProfile.setOnClickListener(this);
 
         }
 
         @Override
         public void onClick(View v) {
-            mListener.recyclerViewMainImageClicked(mPhotos.get(getLayoutPosition()), v);
+            final Photo photo = mPhotos.get(getLayoutPosition());
+
+            switch (v.getId()){
+                case R.id.imageFavoritePhotoView:
+                    ImageView favorite = (ImageView) v.findViewById(R.id.imageFavoritePhotoView);
+                    if (photo.getIsFavorite()){
+                        favorite.setImageResource(R.drawable.ic_favorite_border_black_24dp);
+                    } else {
+                        favorite.setImageResource(R.drawable.ic_favorite_black_24dp);
+                    }
+                    mListener.recyclerViewFavoriteClicked(mPhotos.get(getLayoutPosition()));
+                    break;
+                case R.id.imageSharePhotoView:
+                    mListener.recyclerViewShareClicked();
+                    break;
+                case R.id.imageViewSquare:
+                    mListener.recyclerViewMainImageClicked(mPhotos.get(getLayoutPosition()), v);
+                    break;
+                case R.id.photoViewFavoriteUser:
+                    mListener.recyclerViewFavoriteUserClicked();
+                    break;
+                case R.id.viewProfile:
+                case R.id.buddyIconPhotoView:
+                case R.id.photoViewUsername:
+                    mListener.recyclerViewProfileClicked(photo.getOwner());
+                    break;
+            }
         }
     }
 }

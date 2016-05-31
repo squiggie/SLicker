@@ -19,9 +19,12 @@ public class Photo extends RealmObject{
     private int farm;
     private String secret;
     private Boolean isFavorite;
+    private int width;
+    private int height;
 
 
     public Photo(){
+
     }
 
     public Photo(JSONObject jsonPhoto) throws JSONException {
@@ -89,5 +92,22 @@ public class Photo extends RealmObject{
     public void setIsFavorite(Boolean isFavorite) {
         this.isFavorite = isFavorite;
     }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public void setWidth(int width) {
+        this.width = width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public void setHeight(int height) {
+        this.height = height;
+    }
+
 }
 

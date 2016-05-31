@@ -35,6 +35,10 @@ public class MyInterfaces {
 
     public interface RecyclerViewClickListener {
         void recyclerViewMainImageClicked(Photo photo, View v);
+        void recyclerViewShareClicked();
+        void recyclerViewFavoriteClicked(Photo photo);
+        void recyclerViewFavoriteUserClicked();
+        void recyclerViewProfileClicked(String userID);
     }
 
     public interface OnGetMyPhotos{

@@ -7,7 +7,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
+import android.widget.RelativeLayout;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import slicker.com.slicker.Controller.MyInterfaces;
+import slicker.com.slicker.DynamicImageView;
 import slicker.com.slicker.Model.MyConstants;
 import slicker.com.slicker.Model.Photo;
 import slicker.com.slicker.R;
@@ -43,15 +44,23 @@ public class ProfilePhotoAdapter extends RecyclerView.Adapter<ProfilePhotoAdapte
 
     @Override
     public void onBindViewHolder(final MyViewHolder holder, final int position) {
-        String farm = String.valueOf(mPhotos.get(position).getFarm());
-        String server = String.valueOf(mPhotos.get(position).getServer());
-        String id = mPhotos.get(position).getId();
-        String secret = mPhotos.get(position).getSecret();
+        Photo photo = mPhotos.get(position);
+        String farm = String.valueOf(photo.getFarm());
+        String server = String.valueOf(photo.getServer());
+        String id = photo.getId();
+        String secret = photo.getSecret();
         String size = "n";
 
         //Get and set main Photo
         String url = String.format(MyConstants.IMAGE_URL, farm, server, id, secret, size);
-        Glide.with(mContext).load(url).fitCenter().diskCacheStrategy(DiskCacheStrategy.ALL).placeholder(new ColorDrawable(Color.GRAY)).crossFade().into(holder.imageViewSquare);
+        //String thumb = String.format(MyConstants.IMAGE_URL, farm, server, id, secret, "q");
+        RelativeLayout.LayoutParams rlp = (RelativeLayout.LayoutParams) holder.profileImageView.getLayoutParams();
+        float ratio = (float) photo.getHeight() / (float) photo.getWidth();
+        rlp.height = (int) (rlp.width * ratio);
+        holder.profileImageView.setLayoutParams(rlp);
+        holder.profileImageView.setRatio(ratio);
+        //DrawableRequestBuilder<String> thumbnailRequest = Glide.with(mContext).load(thumb);
+        Glide.with(mContext).load(url).diskCacheStrategy(DiskCacheStrategy.ALL).placeholder(new ColorDrawable(Color.GRAY)).crossFade().into(holder.profileImageView);
     }
 
     public void add(Photo photo){
@@ -72,12 +81,12 @@ public class ProfilePhotoAdapter extends RecyclerView.Adapter<ProfilePhotoAdapte
     }
 
     public class MyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        private ImageView imageViewSquare;
+        private DynamicImageView profileImageView;
 
         public MyViewHolder(View itemView) {
             super(itemView);
-            imageViewSquare = (ImageView) itemView.findViewById(R.id.profileImageView);
-            imageViewSquare.setOnClickListener(this);
+            profileImageView = (DynamicImageView) itemView.findViewById(R.id.profileImageView);
+            profileImageView.setOnClickListener(this);
             itemView.setOnClickListener(this);
         }
 

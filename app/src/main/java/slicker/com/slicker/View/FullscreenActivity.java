@@ -1,7 +1,6 @@
 package slicker.com.slicker.View;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
@@ -25,7 +24,6 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.resource.drawable.GlideDrawable;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.ViewTarget;
-import com.github.jorgecastilloprz.FABProgressCircle;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,7 +32,6 @@ import de.hdodenhof.circleimageview.CircleImageView;
 import io.realm.Realm;
 import io.realm.RealmQuery;
 import slicker.com.slicker.Controller.API.Api;
-import slicker.com.slicker.Controller.API.UpdateFavoritesAsyncTask;
 import slicker.com.slicker.Controller.MyInterfaces;
 import slicker.com.slicker.Model.MyConstants;
 import slicker.com.slicker.Model.Photo;
@@ -42,8 +39,6 @@ import slicker.com.slicker.R;
 
 public class FullScreenActivity extends AppCompatActivity implements FloatingActionButton.OnClickListener, MyInterfaces.OnUpdateFavorite{
     private Realm mRealm;
-    private FloatingActionButton mFABFavorite;
-    private FABProgressCircle mFABProgress;
     private CoordinatorLayout mCoordinatorLayout;
 
     private static Photo mPhoto;
@@ -64,9 +59,6 @@ public class FullScreenActivity extends AppCompatActivity implements FloatingAct
         TextView tvTitle = (TextView) findViewById(R.id.tvTitle);
         final CircleImageView buddyIcon = (CircleImageView) findViewById(R.id.buddyIconFullScreen);
         buddyIcon.setOnClickListener(this);
-        mFABFavorite = (FloatingActionButton) findViewById(R.id.fabFavorite);
-        mFABFavorite.setOnClickListener(this);
-        mFABProgress = (FABProgressCircle) findViewById(R.id.fabProgressCircle);
         mCoordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayoutFull);
 
         Bundle bundle = getIntent().getExtras();
@@ -140,10 +132,8 @@ public class FullScreenActivity extends AppCompatActivity implements FloatingAct
         query.findAll();
 
         if (query.count() > 0){
-            mFABFavorite.setImageResource(R.drawable.ic_star);
             mPhoto.setIsFavorite(true);
         } else {
-            mFABFavorite.setImageResource(R.drawable.ic_star_outline);
             mPhoto.setIsFavorite(false);
         }
     }
@@ -152,9 +142,8 @@ public class FullScreenActivity extends AppCompatActivity implements FloatingAct
     @Override
     public void onClick(View v) {
 
-        switch (v.getId()){
+        /*switch (v.getId()){
             case R.id.fabFavorite:
-                mFABProgress.show();
                 RealmQuery<Photo> query = mRealm.where(Photo.class);
                 query.equalTo("id",mPhoto.getId());
                 Photo favorite = query.findFirst();
@@ -170,7 +159,7 @@ public class FullScreenActivity extends AppCompatActivity implements FloatingAct
                     }
 
                     //update api
-                    UpdateFavoritesAsyncTask updateFavoriteAsyncTask = new UpdateFavoritesAsyncTask(this, this, mFABProgress);
+                    UpdateFavoritesAsyncTask updateFavoriteAsyncTask = new UpdateFavoritesAsyncTask(this, this);
                     updateFavoriteAsyncTask.execute(mToken,mSecret,"remove",mPhoto.getId());
                 } else {
                     //favorite
@@ -180,7 +169,7 @@ public class FullScreenActivity extends AppCompatActivity implements FloatingAct
                     mRealm.copyToRealmOrUpdate(mPhoto);
                     mRealm.commitTransaction();
                     //update api
-                    UpdateFavoritesAsyncTask updateFavoriteAsyncTask = new UpdateFavoritesAsyncTask(this, this, mFABProgress);
+                    UpdateFavoritesAsyncTask updateFavoriteAsyncTask = new UpdateFavoritesAsyncTask(this, this);
                     updateFavoriteAsyncTask.execute(mToken, mSecret, "add", mPhoto.getId());
                 }
                 break;
@@ -190,7 +179,7 @@ public class FullScreenActivity extends AppCompatActivity implements FloatingAct
                     intent.putExtra("user_id",mPhoto.getOwner());
                     startActivity(intent);
                 }
-        }
+        }*/
 
     }
 
@@ -203,17 +192,13 @@ public class FullScreenActivity extends AppCompatActivity implements FloatingAct
 
     @Override
     public void onUpdateFavorite(String response) {
-        mFABProgress.hide();
         Snackbar.make(mCoordinatorLayout,R.string.favorite_toggled,Snackbar.LENGTH_SHORT).show();
         toggleFAB();
     }
 
     private void toggleFAB(){
         if (mPhoto.getIsFavorite()){
-            mFABFavorite.setImageResource(R.drawable.ic_star);
         } else {
-            mFABFavorite.setImageResource(R.drawable.ic_star_outline);
         }
-        mFABProgress.hide();
     }
 }
