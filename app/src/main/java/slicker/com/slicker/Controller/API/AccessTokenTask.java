@@ -15,9 +15,7 @@ import com.github.scribejava.core.oauth.OAuth10aService;
 import slicker.com.slicker.Controller.MyInterfaces;
 import slicker.com.slicker.R;
 
-/**
- * Created by squiggie on 2/23/16.
- */
+@Deprecated
 public class AccessTokenTask extends AsyncTask<String, Integer, Token> {
 
     private Context mContext;

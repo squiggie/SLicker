@@ -13,9 +13,7 @@ import com.github.scribejava.core.oauth.OAuth10aService;
 import slicker.com.slicker.Controller.MyInterfaces;
 import slicker.com.slicker.Model.MyConstants;
 
-/**
- * Created by squiggie on 2/24/16.
- */
+@Deprecated
 public class UserInfoTask extends AsyncTask<String, Integer, String> {
     private MyInterfaces.OnGetUserInfo mListener;
 

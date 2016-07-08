@@ -13,9 +13,7 @@ import com.github.scribejava.core.oauth.OAuth10aService;
 
 import slicker.com.slicker.Controller.MyInterfaces;
 
-/**
- * Created by squiggie on 2/23/16.
- */
+@Deprecated
 public class RequestTokenTask extends AsyncTask<String, Integer, String> {
 
     private static final String OAUTH_CALLBACK_URI = "slicker://";

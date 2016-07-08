@@ -25,7 +25,14 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.resource.drawable.GlideDrawable;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
+import com.github.scribejava.apis.FlickrApi;
+import com.github.scribejava.core.builder.ServiceBuilder;
+import com.github.scribejava.core.model.OAuthRequest;
+import com.github.scribejava.core.model.Response;
 import com.github.scribejava.core.model.Token;
+import com.github.scribejava.core.model.Verb;
+import com.github.scribejava.core.model.Verifier;
+import com.github.scribejava.core.oauth.OAuth10aService;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -38,11 +45,12 @@ import java.util.Random;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import slicker.com.slicker.Controller.API.AccessTokenTask;
+import rx.Observable;
+import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Func0;
+import rx.schedulers.Schedulers;
 import slicker.com.slicker.Controller.API.Api;
-import slicker.com.slicker.Controller.API.RequestTokenTask;
-import slicker.com.slicker.Controller.API.UserInfoTask;
-import slicker.com.slicker.Controller.MyInterfaces;
 import slicker.com.slicker.Model.MyConstants;
 import slicker.com.slicker.Model.OAuth;
 import slicker.com.slicker.Model.OAuthToken;
@@ -50,8 +58,7 @@ import slicker.com.slicker.Model.Photo;
 import slicker.com.slicker.Model.User;
 import slicker.com.slicker.R;
 
-public class LoginActivity extends AppCompatActivity implements MyInterfaces.OnAccessTokenTaskCompleted, MyInterfaces.OnSaveOAuthRequestToken, MyInterfaces.OnGetUserInfo,
-    MyInterfaces.OnRequestTokenTaskCompleted{
+public class LoginActivity extends AppCompatActivity{
 
     @Bind(R.id.login) Button btnLogin;
     @Bind(R.id.slicker) TextView slicker;
@@ -62,6 +69,7 @@ public class LoginActivity extends AppCompatActivity implements MyInterfaces.OnA
     private SharedPreferences sp;
     private List<Photo> mPhotos = new ArrayList<>();
 
+    private static final String OAUTH_CALLBACK_URI = "slicker://";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -102,8 +110,51 @@ public class LoginActivity extends AppCompatActivity implements MyInterfaces.OnA
 
     @OnClick(R.id.login)
     public void login(){
-        RequestTokenTask task = new RequestTokenTask(this,this,this);
-        task.execute(MyConstants.API_KEY, MyConstants.API_SEC);
+        //RequestTokenTask task = new RequestTokenTask(this,this,this);
+        //task.execute(MyConstants.API_KEY, MyConstants.API_SEC);
+
+        Observable<String> observable = Observable.defer(new Func0<Observable<String>>() {
+            @Override
+            public Observable<String> call() {
+                try {
+                    OAuth10aService service = new ServiceBuilder()
+                            .apiKey(MyConstants.API_KEY)
+                            .apiSecret(MyConstants.API_SEC)
+                            .callback(OAUTH_CALLBACK_URI)
+                            .build(FlickrApi.instance());
+                    Token requestToken = service.getRequestToken();
+                    saveOAuthToken(null,null,requestToken.getToken(),requestToken.getSecret());
+                    return Observable.just(service.getAuthorizationUrl(requestToken));
+                }
+                catch (Exception e) {
+                    return Observable.just("error:" + e.getMessage());
+                }
+            }
+        });
+
+        Subscriber<String> requestSubscriber = new Subscriber<String>() {
+            @Override
+            public void onCompleted() {
+
+            }
+
+            @Override
+            public void onError(Throwable e) {
+
+            }
+
+            @Override
+            public void onNext(String s) {
+                toggleVisibility();
+                webView.loadUrl(s);
+            }
+        };
+
+        observable
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(requestSubscriber);
+
     }
 
     public OAuth getOAuthToken() {
@@ -135,30 +186,8 @@ public class LoginActivity extends AppCompatActivity implements MyInterfaces.OnA
     }
 
     @Override
-    public void onAccessTokenTaskCompleted(Token accessToken) {
-        if (accessToken == null) {
-            Toast.makeText(this, "Authorization failed", Toast.LENGTH_LONG).show();
-        } else {
-            saveOAuthToken(null,null,accessToken.getToken(),accessToken.getSecret());
-            UserInfoTask userInfo = new UserInfoTask(this);
-            userInfo.execute(MyConstants.API_KEY, MyConstants.API_SEC, accessToken.getToken(), accessToken.getSecret());
-        }
-
-    }
-
-    @Override
     protected void onNewIntent(Intent intent) {
         setIntent(intent);
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        //Intent intent = getIntent();
-        //String scheme = intent.getScheme();
-        //OAuth savedToken = getOAuthToken();
-        //if (MyConstants.CALLBACK_SCHEME.equals(scheme) && (savedToken == null || savedToken.getUser() == null)) {
-        //}
     }
 
     public void saveOAuthToken(String userName, String userId, String token, String tokenSecret) {
@@ -170,34 +199,6 @@ public class LoginActivity extends AppCompatActivity implements MyInterfaces.OnA
         editor.commit();
     }
 
-    @Override
-    public void onSaveOauthRequestToken(Token requestToken) {
-        SharedPreferences.Editor editor = sp.edit();
-        editor.putString(MyConstants.KEY_TOKEN_SECRET, requestToken.getSecret());
-        editor.putString(MyConstants.KEY_OAUTH_TOKEN,requestToken.getToken());
-        editor.apply();
-    }
-
-    @Override
-    public void onGetUserInfo(String response) {
-        if (response.contains("username")){
-            String json = response.substring(response.indexOf("(") + 1, response.lastIndexOf(")"));
-            try {
-                JSONObject parsedJson = new JSONObject(json);
-                JSONObject user = parsedJson.getJSONObject("user");
-                String id = user.getString("id");
-                JSONObject usernameObject = user.getJSONObject("username");
-                String username = usernameObject.getString("_content");
-                saveOAuthToken(username,id,null,null);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            startSlicker();
-        } else {
-            Toast.makeText(this, "Authorization failed", Toast.LENGTH_LONG).show();
-        }
-    }
-
     private void completeOAuthVerify(Uri uri){
         if (uri != null){
 
@@ -205,13 +206,58 @@ public class LoginActivity extends AppCompatActivity implements MyInterfaces.OnA
             String[] data = query.split("&");
 
             if (data != null && data.length == 2) {
-                String oauthToken = data[0].substring(data[0].indexOf("=") + 1);
-                String oauthVerifier = data[1].substring(data[1].indexOf("=") + 1);
+                final String oauthToken = data[0].substring(data[0].indexOf("=") + 1);
+                final String oauthVerifier = data[1].substring(data[1].indexOf("=") + 1);
                 saveOAuthToken(null,null,oauthToken,null);
-                OAuth oauth = getOAuthToken();
+                final OAuth oauth = getOAuthToken();
                 if (oauth != null && oauth.getToken() != null && oauth.getToken().getOauthTokenSecret() != null) {
-                    AccessTokenTask task = new AccessTokenTask(this,this);
-                    task.execute(MyConstants.API_KEY, MyConstants.API_SEC,oauthToken,oauth.getToken().getOauthTokenSecret(),oauthVerifier);
+                    //AccessTokenTask task = new AccessTokenTask(this,this);
+                    //task.execute(MyConstants.API_KEY, MyConstants.API_SEC,oauthToken,oauth.getToken().getOauthTokenSecret(),oauthVerifier);
+
+                    Observable<Token> observable = Observable.defer(new Func0<Observable<Token>>() {
+                        @Override
+                        public Observable<Token> call() {
+                            try {
+                                OAuth10aService service = new ServiceBuilder()
+                                        .apiKey(MyConstants.API_KEY)
+                                        .apiSecret(MyConstants.API_SEC)
+                                        .build(FlickrApi.instance());
+                                Token requestToken = new Token(oauthToken, oauth.getToken().getOauthTokenSecret());
+                                Verifier verifier = new Verifier(oauthVerifier);
+                                Token accessToken = service.getAccessToken(requestToken, verifier);
+                                saveOAuthToken(null,null,accessToken.getToken(),accessToken.getSecret());
+                                return Observable.just(accessToken);
+                            } catch (Exception e){
+                                return Observable.just(new Token("error","error"));
+                            }
+                        }
+                    });
+
+                    Subscriber<Token> accessSubscriber = new Subscriber<Token>() {
+                        @Override
+                        public void onCompleted() {
+
+                        }
+
+                        @Override
+                        public void onError(Throwable e) {
+
+                        }
+
+                        @Override
+                        public void onNext(Token token) {
+                            if (token.getToken().contains("error")){
+                                Toast.makeText(getApplicationContext(), R.string.basic_error, Toast.LENGTH_LONG).show();
+                            } else {
+                                getUserInfo(token);
+                            }
+                        }
+                    };
+
+                    observable
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(accessSubscriber);
                 }
             }
         }
@@ -240,12 +286,6 @@ public class LoginActivity extends AppCompatActivity implements MyInterfaces.OnA
         } else {
             logo.setVisibility(View.GONE);
         }
-    }
-
-    @Override
-    public void onRequestTokenTaskCompleted(String url) {
-        toggleVisibility();
-        webView.loadUrl(url);
     }
 
     private void getPhotos() {
@@ -329,5 +369,61 @@ public class LoginActivity extends AppCompatActivity implements MyInterfaces.OnA
                 });
             }
         });
+    }
+
+    private void getUserInfo(final Token token){
+
+        Observable<String> observable = Observable.defer(new Func0<Observable<String>>() {
+            @Override
+            public Observable<String> call() {
+                OAuth10aService service = new ServiceBuilder()
+                        .apiKey(MyConstants.API_KEY)
+                        .apiSecret(MyConstants.API_SEC)
+                        .build(FlickrApi.instance());
+                OAuthRequest request = new OAuthRequest(Verb.GET, MyConstants.PROTECTED_RESOURCE_URL,service);
+                request.addQuerystringParameter("method","flickr.test.login");
+                request.addQuerystringParameter("format","json");
+                service.signRequest(token, request);
+                Response response = request.send();
+                return Observable.just(response.getBody());
+            }
+        });
+
+        Subscriber<String> userSubscriber = new Subscriber<String>() {
+            @Override
+            public void onCompleted() {
+
+            }
+
+            @Override
+            public void onError(Throwable e) {
+
+            }
+
+            @Override
+            public void onNext(String s) {
+                if (s.contains("username")){
+                    String json = s.substring(s.indexOf("(") + 1, s.lastIndexOf(")"));
+                    try {
+                        JSONObject parsedJson = new JSONObject(json);
+                        JSONObject user = parsedJson.getJSONObject("user");
+                        String id = user.getString("id");
+                        JSONObject usernameObject = user.getJSONObject("username");
+                        String username = usernameObject.getString("_content");
+                        saveOAuthToken(username,id,null,null);
+                    } catch (JSONException e) {
+                        Toast.makeText(getApplicationContext(), "Authorization failed", Toast.LENGTH_LONG).show();
+                    }
+                    startSlicker();
+                } else {
+                    Toast.makeText(getApplicationContext(), "Authorization failed", Toast.LENGTH_LONG).show();
+                }
+            }
+        };
+
+        observable
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(userSubscriber);
     }
 }
